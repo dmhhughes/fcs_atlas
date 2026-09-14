@@ -14,7 +14,7 @@ associations merge, which they do often.
 
 ```
 npm install
-npm run build     # fetch -> parse -> rasterise -> seed terrain
+npm run build     # fetch -> parse -> rasterise
 npm run serve     # http://localhost:8080
 ```
 
@@ -25,7 +25,7 @@ npm run serve     # http://localhost:8080
 | Hover / click | Highlight a territory / open its signpost |
 | Arrow keys (or WASD) | Travel to the neighbouring territory in that direction |
 | `R` | Roll a random territory, preferring ones not yet discovered |
-| `1` `2` `3` | Colour the map by terrain, association, or district bank |
+| `1` `2` | Colour the map by association or by district bank |
 | `Esc` | Clear the selection |
 | Find box | Filter the gazetteer; `Enter` opens the first match |
 
@@ -50,9 +50,9 @@ low in the west.
   longitude dotted over open water and sparse amber glints.
 - **An atlas plate.** The map sits on a parchment mat with lettered and
   numbered rulers; the directory below is a gazetteer that refers back to them.
-- **Palette:** violet sea, amber and olive fields, mauve mountains, parchment
+- **Palette:** violet sea, soft golden-angle hues for the territories, parchment
   panels, rose and sun-gold accents. Selection is a sun-gold line over a dark
-  backing, which stays legible on every terrain.
+  backing, which stays legible on every territory colour.
 - **Type:** Pixelify Sans for display and reading text, Silkscreen for labels
   and grid references. Both are self-hosted in `assets/fonts/`.
 - **Emblem:** an 8×8 sprout over a ploughed field, drawn as SVG for the title
@@ -69,7 +69,6 @@ low in the west.
 | 1 | `1-fetch-fca.mjs` | Scrapes the FCA public directory: roster, 55 association pages, 55 territory PNGs, and the 4 funding banks. Everything is cached in `data/raw/`. |
 | 2 | `2-parse-territories.mjs` | Turns territory descriptions into county FIPS sets, resolves overlaps, writes `data/associations.json`. |
 | 3 | `3-build-map.mjs` | Projects counties, rasterises at 4× and majority-votes down to a 200×125 tile grid; closes enclaves; writes `data/map.json` (tiles, regions, graticule) and `data/directory.web.json` (associations, banks, stats). |
-| 4 | `4-seed-terrain.mjs` | Classifies each land tile into a terrain type from coarse geographic rules. |
 
 ```
 npm test          # geometry, hit testing, keyboard reachability, grouping, no-scroll invariants
@@ -90,7 +89,6 @@ npm run coverage  # render any land that no association claims
 | `src/scene.js` | The header sunset |
 | `src/emblem.js` | The 8×8 emblem and favicon |
 | `src/tiles.js` | Palette |
-| `tools/terrain-painter.html` | Dev tool for hand-tuning the terrain layer |
 
 ## How the territory parsing works
 
@@ -150,8 +148,6 @@ Everything parsed is auditable in `data/reports/`.
 
 - Puerto Rico is drawn as an island with its own projection; Alaska and Hawaii
   are `geoAlbersUsa` insets. All are ordinary selectable territories.
-- Terrain is aesthetic, not a data claim: coarse geographic rules, smoothed.
-  At the fitted scale it is drawn as flat colour.
 - Commodity data is not included; FCA does not publish it. The signpost shows it
   if the field is ever populated.
 - Virginia's independent cities, Baltimore, St. Louis and the District of

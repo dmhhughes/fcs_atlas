@@ -8,7 +8,7 @@
  */
 
 import {
-  TERRAIN_COLORS, SEA_BANDS, LIGHT, DISTRICT_COLORS, DISTRICT_FALLBACK,
+  SEA_BANDS, LIGHT, DISTRICT_COLORS, DISTRICT_FALLBACK,
   regionColor, tileNoise,
 } from './tiles.js';
 
@@ -18,22 +18,18 @@ const RIGHT = 2;
 const BOTTOM = 4;
 const LEFT = 8;
 
-export const MODES = ['terrain', 'territory', 'district'];
-
 export class GameMap {
   constructor(mapData, associations) {
     this.width = mapData.width;
     this.height = mapData.height;
     this.tileSize = mapData.tileSize;
     this.assoc = Int16Array.from(mapData.assoc);
-    this.terrain = Uint8Array.from(mapData.terrain);
     this.regions = mapData.regions;
     this.graticule = mapData.graticule ?? [];
     this.associations = associations;
 
     this.worldWidth = this.width * this.tileSize;
     this.worldHeight = this.height * this.tileSize;
-    this.hasTerrain = this.terrain.some((t) => t !== 0);
 
     this.regionByIndex = new Map();
     for (const r of this.regions) if (r) this.regionByIndex.set(r.index, r);
@@ -171,14 +167,13 @@ export class GameMap {
   /**
    * Draw the whole map.
    * @param {object} opts
-   * @param {'terrain'|'territory'|'district'} opts.mode
+   * @param {'territory'|'district'} opts.mode
    * @param {number} opts.unit  one device pixel in world units; every width
    *                            below is a whole multiple of it, so no edge is
    *                            fractional and nothing anti-aliases into seams
    */
-  draw(ctx, { mode = 'terrain', unit = 1 } = {}) {
+  draw(ctx, { mode = 'territory', unit = 1 } = {}) {
     const T = this.tileSize;
-    if (mode === 'terrain' && !this.hasTerrain) mode = 'territory';
 
     // Sea: deep underlay, then the coastal bands.
     ctx.fillStyle = SEA_BANDS[SEA_BANDS.length - 1];
@@ -195,7 +190,6 @@ export class GameMap {
     this.#fillRuns(ctx, (i) => {
       const a = this.assoc[i];
       if (a < 0) return null;
-      if (mode === 'terrain') return TERRAIN_COLORS[this.terrain[i]]?.base ?? TERRAIN_COLORS[1].base;
       return this.colorOf(a, mode);
     });
 

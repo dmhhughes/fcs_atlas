@@ -10,14 +10,14 @@ An interactive pixel-art atlas of the ~55 U.S. Farm Credit lending associations.
 
 ```
 npm install
-npm run build      # fetch -> parse -> map -> terrain (all four steps)
+npm run build      # fetch -> parse -> map (all three steps)
 npm run serve      # static dev server, http://localhost:8080 (PORT env overrides)
 npm test           # scripts/test-map.mjs
 npm run preview    # headless render of the map into data/reports/preview-*.png
 npm run coverage   # renders land no association claims -> data/reports/coverage-holes.png
 ```
 
-Individual steps: `npm run fetch`, `npm run parse`, `npm run map`, `npm run terrain`.
+Individual steps: `npm run fetch`, `npm run parse`, `npm run map`.
 
 The same commands work inside the dev container (`.devcontainer/`, Node 24, `npm ci` on create, port 8080 forwarded). Headless-Edge screenshots (below) run on the host against the forwarded port.
 
@@ -25,23 +25,22 @@ The same commands work inside the dev container (`.devcontainer/`, Node 24, `npm
 
 ## Pipeline gotchas
 
-- **`npm run build` overwrites hand-painted terrain.** Its last step re-seeds the terrain layer. After a territory change, run `npm run parse && npm run map` instead: step 3 carries the existing terrain forward when the grid dimensions match. Terrain is hand-tuned in `tools/terrain-painter.html`, which exports a replacement `data/map.json`.
 - **Step 1 caches everything in `data/raw/`** (gitignored) and skips files already there. Delete files to re-scrape. It is sequential with a 500ms delay against a `.gov` host, so keep it that way.
 - **Unclaimed land renders exactly like sea.** A county the parser drops shows up as coastline, not as an error; this is how 13 Arizona counties once vanished silently. After any parser change, check `data/reports/unmatched.md` and `overlap.md`, and run `npm run coverage`. Step 3 also reports any unassigned land pocket larger than 24 tiles.
-- **World constants live in `scripts/lib/config.mjs`.** `TILES_W`, `TILES_H`, `SS` and `MIN_TILES` are shared because step 4 back-projects each tile through the exact projection step 3 rasterised with. Change them there, never in one script.
+- **World constants live in `scripts/lib/config.mjs`.** `TILES_W`, `TILES_H`, `SS` and `MIN_TILES` are shared because `diagnose-coverage.mjs` must reproduce exactly the grid step 3 rasterised. Change them there, never in one script.
 
 ## Architecture
 
 **Data flow.** FCA directory → `data/raw/` → `associations.raw.json` (step 1) → `associations.json` (step 2) → `map.json` + `directory.web.json` (step 3). The browser loads only the last two.
 
 - `associations.json` is the full audit record. It keeps the verbatim `territoryText`, and it has both `counties` (everything chartered) and `ownedCounties` (what the association actually gets on the map). Where charters overlap, the **smallest territory wins** so compact associations stay visible, and the others are listed in `sharedWith`. An association left with nothing is grown from its HQ county (First South Farm Credit is the case that needs this).
-- `map.json` holds `assoc[]` (0-based association index per tile, -1 = sea), `terrain[]`, `regions[]` (`{uninum, index, tileCount, anchor}`) and `graticule` polylines. The world is 3200×2000 px (16px tiles).
+- `map.json` holds `assoc[]` (0-based association index per tile, -1 = sea), `regions[]` (`{uninum, index, tileCount, anchor}`) and `graticule` polylines. The world is 3200×2000 px (16px tiles).
 - `directory.web.json` is `{stats, banks, associations}`, trimmed down for the browser.
 
 **Browser** (`src/`):
 
 - `main.js` owns state, layout, input and the DOM. `map.js` (`GameMap`) owns region geometry, hit testing and the base-map drawing. `render.js` draws one frame from state and is **shared with `scripts/render-preview.mjs`**. Put drawing changes in `map.js`/`render.js`, never inline in `main.js`, or the headless preview stops matching the page.
-- **There is no animation loop.** The base map is painted into an offscreen canvas once per layout or view change; hover, selection and the selection ping draw over a copy of it. Anything that changes the base (view mode, palette, terrain) must set `baseDirty`.
+- **There is no animation loop.** The base map is painted into an offscreen canvas once per layout or view change; hover, selection and the selection ping draw over a copy of it. Anything that changes the base (view mode, palette) must set `baseDirty`.
 - **Every tile is a whole number of backing pixels.** At a fractional scale, each tile row gets anti-aliased edges that don't composite back to opaque, and the sea shows through as horizontal seams across the map. `unit` is one backing pixel in world units, and every stroke width is a multiple of it. `layout()` has two paths: whole device pixels shown 1:1, or a small integer tile size resampled by CSS when rounding down would waste more than 15% of the width (phones).
 - **The atlas grid is tied to the world size.** `CELL = 200` world px gives 16×10 squares (A–P, 1–10). The rulers, the HUD, the signpost and the gazetteer grid references all depend on it.
 - **Arrow keys** move between irregular regions using the cone-scored nearest anchor (`navigate.js`). Test 4 asserts every region is reachable this way.
@@ -51,7 +50,6 @@ The same commands work inside the dev container (`.devcontainer/`, Node 24, `npm
 
 - **Test 7 checks `main.js` source by regex.** It guards a scroll-jump bug that happened twice: `highlightListItem` must not call `scrollIntoView`, `canvas.focus()` must pass `preventScroll`, and arrow keys must be handled on `window` with `preventDefault`. Restructuring those spots can fail the test even if the behaviour is correct. Keep the behaviour, and update the test if the structure changes.
 - **The preview's canvas shim implements only** `fillStyle`, `fillRect`, `globalAlpha` and `save`/`translate`/`restore`. Colours must be hex, `rgb()`/`rgba()`, or space-separated `hsl()`; anything else draws magenta and is reported. New canvas APIs in `map.js`/`render.js` need the shim extended.
-- **`TERRAIN_COLORS[*].base` must stay 6-digit hex**, because the terrain painter parses it.
 - **Keep the `Atlas Digits` `@font-face`** first in `--f-display`. It swaps in Silkscreen digits because Pixelify Sans' 5 reads as an S ("55" became "SS", "150" became "180").
 - **No native dependencies.** The dev machine is Windows on ARM. The rasteriser and PNG encoder in `scripts/lib/` are hand-written to avoid `node-canvas`, and the dev container image must stay multi-arch (amd64 + arm64).
 

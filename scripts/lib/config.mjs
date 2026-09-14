@@ -1,8 +1,9 @@
 /**
- * World constants shared by the build steps.
+ * World constants shared by the build scripts.
  *
- * Step 4 has to invert exactly the projection step 3 rasterised with, so these
- * live in one place rather than being repeated and quietly drifting apart.
+ * scripts/diagnose-coverage.mjs has to reproduce exactly the grid step 3
+ * rasterised, so these live in one place rather than being repeated and
+ * quietly drifting apart.
  */
 
 export const TILES_W = 200;

@@ -13,15 +13,13 @@ import { Signpost } from './signpost.js';
 import { neighborInDirection, nearestRegion } from './navigate.js';
 import { mountScene } from './scene.js';
 import { emblemSvg, installFavicon } from './emblem.js';
-import {
-  TERRAIN_NAMES, TERRAIN_COLORS, SEA_BANDS, DISTRICT_COLORS, DISTRICT_FALLBACK,
-} from './tiles.js';
+import { SEA_BANDS, DISTRICT_COLORS, DISTRICT_FALLBACK } from './tiles.js';
 
 const KEY_DIRECTIONS = {
   ArrowUp: 'up', ArrowDown: 'down', ArrowLeft: 'left', ArrowRight: 'right',
   KeyW: 'up', KeyS: 'down', KeyA: 'left', KeyD: 'right',
 };
-const MODE_KEYS = { 1: 'terrain', 2: 'territory', 3: 'district' };
+const MODE_KEYS = { 1: 'territory', 2: 'district' };
 
 /** Atlas grid: 200 world px squares give 16 columns (A-P) by 10 rows (1-10). */
 const CELL = 200;
@@ -67,7 +65,7 @@ async function boot() {
 
   let hovered = -1;
   let selected = -1;
-  let mode = map.hasTerrain ? 'terrain' : 'territory';
+  let mode = 'territory';
   let ping = null;
   let pingFrame = 0;
   let rolling = false;
@@ -356,7 +354,6 @@ async function boot() {
   for (const b of modeButtons) b.addEventListener('click', () => setMode(b.dataset.mode));
 
   function setMode(next) {
-    if (next === 'terrain' && !map.hasTerrain) return;
     mode = next;
     for (const b of modeButtons) b.setAttribute('aria-checked', String(b.dataset.mode === mode));
     document.getElementById('directory').dataset.mode = mode;
@@ -378,10 +375,7 @@ async function boot() {
       legend.append(li);
     };
 
-    if (mode === 'terrain') {
-      for (let t = 1; t < TERRAIN_NAMES.length; t++) item(TERRAIN_COLORS[t].base, TERRAIN_NAMES[t]);
-      item(SEA_BANDS[1], 'Sea');
-    } else if (mode === 'district') {
+    if (mode === 'district') {
       for (const b of banks) item(DISTRICT_COLORS[b.district] ?? DISTRICT_FALLBACK, `${b.district} · ${b.name}`);
     } else {
       const li = document.createElement('li');
@@ -508,8 +502,7 @@ async function boot() {
   function refreshSwatches() {
     for (const el of document.querySelectorAll('.entry')) {
       const i = Number(el.dataset.index);
-      el.querySelector('.entry-swatch').style.background =
-        mode === 'territory' ? map.colorOf(i, 'territory') : map.colorOf(i, 'district');
+      el.querySelector('.entry-swatch').style.background = map.colorOf(i, mode);
     }
   }
 

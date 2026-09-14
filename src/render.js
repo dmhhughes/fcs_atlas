@@ -19,7 +19,7 @@ export const OVERLAY = {
  * @param {CanvasRenderingContext2D} ctx  already transformed into world space
  * @param {import('./map.js').GameMap} map
  * @param {object} s
- * @param {string} s.mode       terrain | territory | district
+ * @param {string} s.mode       territory | district
  * @param {number} s.unit       one device pixel, in world units
  * @param {number} s.hovered    association index or -1
  * @param {number} s.selected   association index or -1
@@ -36,7 +36,7 @@ export function renderFrame(ctx, map, { mode, unit, hovered = -1, selected = -1,
 
   if (selected >= 0) {
     // The low sun "spotlights" the chosen territory: a gold line over a dark
-    // backing, which reads on every terrain from pale desert to deep forest.
+    // backing, which reads on every territory and district colour.
     map.fillRegion(ctx, selected, OVERLAY.selectWash);
     map.strokeRegion(ctx, selected, OVERLAY.selectBacking, 4 * unit);
     map.strokeRegion(ctx, selected, OVERLAY.selectLine, 2 * unit);

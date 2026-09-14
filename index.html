@@ -55,7 +55,7 @@
 
       <div class="stage-wrap">
         <canvas id="stage" tabindex="0" role="application"
-                aria-label="Map of Farm Credit Association territories. Arrow keys move between territories; R rolls a random one; 1, 2 and 3 change the colouring."></canvas>
+                aria-label="Map of Farm Credit Association territories. Arrow keys move between territories; R rolls a random one; 1 and 2 change the colouring."></canvas>
         <div id="signpost" class="signpost" hidden role="dialog" aria-live="polite" aria-label="Association details"></div>
         <p id="hud" class="hud" aria-hidden="true"></p>
       </div>
@@ -63,9 +63,8 @@
 
     <div class="controls">
       <div class="modes" role="radiogroup" aria-label="Colour the map by">
-        <button type="button" role="radio" data-mode="terrain" aria-checked="true"><kbd>1</kbd>Terrain</button>
-        <button type="button" role="radio" data-mode="territory" aria-checked="false"><kbd>2</kbd>Territories</button>
-        <button type="button" role="radio" data-mode="district" aria-checked="false"><kbd>3</kbd>Districts</button>
+        <button type="button" role="radio" data-mode="territory" aria-checked="true"><kbd>1</kbd>Territories</button>
+        <button type="button" role="radio" data-mode="district" aria-checked="false"><kbd>2</kbd>Districts</button>
       </div>
 
       <button id="roll" class="roll" type="button">

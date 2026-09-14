@@ -369,22 +369,6 @@ async function main() {
 
   const landTiles = [...assoc].filter((v) => v >= 0).length;
 
-  // Carry any existing terrain forward. Terrain is expensive to hand-tune in
-  // tools/terrain-painter.html, and re-running this step to pick up a territory
-  // change should not silently discard that work. Dimensions must match, since
-  // terrain is indexed by tile. `npm run terrain` re-seeds deliberately.
-  let terrain = new Array(grid.length).fill(0);
-  try {
-    const existing = JSON.parse(await readFile(join(DATA, 'map.json'), 'utf8'));
-    if (existing.width === W && existing.height === H && existing.terrain?.length === grid.length) {
-      terrain = existing.terrain;
-      const painted = terrain.filter((t) => t !== 0).length;
-      if (painted) console.log(`  preserved existing terrain for ${painted} tiles`);
-    }
-  } catch {
-    // No previous map, or unreadable - seed empty and let step 4 fill it.
-  }
-
   // Graticule: real 5-degree lines of latitude and longitude, projected through
   // the same composite projection as the counties, so they bend correctly and
   // appear in the Alaska and Hawaii insets too. Recorded as polylines in world
@@ -410,7 +394,6 @@ async function main() {
       height: H,
       tileSize: TILE_SIZE,
       assoc: [...assoc],
-      terrain,
       regions,
       graticule: graticule.filter((l) => l.length >= 4),
     })

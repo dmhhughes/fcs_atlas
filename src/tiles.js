@@ -2,34 +2,8 @@
  * Palette - "golden hour".
  *
  * The map is lit as if at half past four on an autumn afternoon: warm, low
- * light from the west, violet sea, mauve mountains. Terrain indices match
- * scripts/4-seed-terrain.mjs. Every base colour is a 6-digit hex because
- * tools/terrain-painter.html parses them directly.
+ * light from the west over a violet sea.
  */
-
-export const TERRAIN = {
-  WATER: 0,
-  FARMLAND: 1,
-  TALLGRASS: 2,
-  FOREST: 3,
-  DESERT: 4,
-  WETLAND: 5,
-  MOUNTAIN: 6,
-};
-
-export const TERRAIN_NAMES = [
-  'Water', 'Farmland', 'Grassland', 'Forest', 'Desert', 'Wetland', 'Mountains',
-];
-
-export const TERRAIN_COLORS = [
-  { base: '#2a2150', accent: '#352a64' },
-  { base: '#d8a23e', accent: '#c28a2e' },
-  { base: '#93a948', accent: '#7f9639' },
-  { base: '#3f6a3c', accent: '#34592f' },
-  { base: '#e6b487', accent: '#d49e72' },
-  { base: '#5b8c7c', accent: '#4b7869' },
-  { base: '#8a7690', accent: '#77647d' },
-];
 
 /**
  * The sea, banded by distance from the coast like a 16-bit overworld: a bright
