@@ -1,0 +1,10 @@
+node_modules/
+
+# Cached scrapes of the FCA public directory. Regenerable with `npm run fetch`,
+# and the legally-operative territory text is preserved inside the committed
+# data/associations.json, so there is no reason to version ~30MB of HTML + PNGs.
+data/raw/
+
+# Rendered previews and debug images, rewritten by the build, `npm run preview`
+# and `npm run coverage`. The .md reports stay committed as the parse audit.
+data/reports/*.png

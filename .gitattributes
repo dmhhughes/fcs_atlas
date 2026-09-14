@@ -1,0 +1,6 @@
+# LF everywhere, so a Windows checkout, the dev container and CI all see the
+# same bytes (the build's JSON outputs are compared across them).
+* text=auto eol=lf
+
+*.png binary
+*.woff2 binary

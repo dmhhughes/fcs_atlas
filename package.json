@@ -1,0 +1,29 @@
+{
+  "name": "fcs_atlas",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "An interactive pixel-art atlas of U.S. Farm Credit Association territories",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/dmhhughes/fcs_atlas.git"
+  },
+  "scripts": {
+    "fetch": "node scripts/1-fetch-fca.mjs",
+    "parse": "node scripts/2-parse-territories.mjs",
+    "map": "node scripts/3-build-map.mjs",
+    "terrain": "node scripts/4-seed-terrain.mjs",
+    "build": "npm run fetch && npm run parse && npm run map && npm run terrain",
+    "test": "node scripts/test-map.mjs",
+    "preview": "node scripts/render-preview.mjs",
+    "coverage": "node scripts/diagnose-coverage.mjs",
+    "serve": "node scripts/serve.mjs"
+  },
+  "devDependencies": {
+    "cheerio": "^1.0.0",
+    "d3-geo": "^3.1.1",
+    "topojson-client": "^3.1.0",
+    "us-atlas": "^3.0.1"
+  }
+}

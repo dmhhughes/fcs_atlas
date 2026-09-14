@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Farm Credit Territory Atlas</title>
+<meta name="description" content="Every Farm Credit lending association in the United States, drawn as an interactive pixel map of the territory it serves.">
+<meta name="theme-color" content="#1c1530">
+<link rel="preload" href="assets/fonts/pixelify-sans.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="assets/fonts/silkscreen-400.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<a class="skip" href="#plate">Skip to the map</a>
+
+<header class="hero">
+  <canvas id="scene" aria-hidden="true"></canvas>
+  <div class="cartouche">
+    <span class="orn" aria-hidden="true"></span>
+    <div class="cartouche-body">
+      <span class="emblem" data-emblem data-size="40"></span>
+      <p class="eyebrow">The Farm Credit System</p>
+      <h1>Territory Atlas</h1>
+      <p class="tagline">Every lending association in America, drawn as a pixel map of the land it serves.</p>
+    </div>
+    <span class="orn orn-r" aria-hidden="true"></span>
+  </div>
+</header>
+
+<main>
+  <p id="boot-error" class="boot-error" hidden></p>
+
+  <ul class="stats" aria-label="At a glance">
+    <li><strong id="stat-associations">55</strong><span>Associations</span></li>
+    <li><strong id="stat-banks">4</strong><span>District banks</span></li>
+    <li><strong id="stat-counties">3,186</strong><span>Counties chartered</span></li>
+    <li><strong id="stat-states">51</strong><span>States &amp; territories</span></li>
+  </ul>
+
+  <section class="atlas" aria-labelledby="atlas-title">
+    <div class="section-head">
+      <h2 id="atlas-title"><span class="plate-no">Plate I</span>The Territories</h2>
+      <p>Hover or click a territory to see who serves it. The arrow keys travel to the neighbouring territory in that direction.</p>
+    </div>
+
+    <div class="plate" id="plate">
+      <div class="ruler-corner" aria-hidden="true">
+        <svg viewBox="0 0 7 9" width="14" height="18" shape-rendering="crispEdges">
+          <g fill="currentColor"><rect x="3" y="0" width="1" height="1"/><rect x="2" y="1" width="3" height="1"/><rect x="1" y="2" width="5" height="1"/><rect x="3" y="3" width="1" height="2"/></g>
+          <g fill="currentColor"><rect x="1" y="6" width="1" height="3"/><rect x="2" y="7" width="1" height="1"/><rect x="3" y="7" width="1" height="1"/><rect x="4" y="8" width="1" height="1"/><rect x="5" y="6" width="1" height="3"/><rect x="4" y="6" width="1" height="1"/></g>
+        </svg>
+      </div>
+      <div class="ruler ruler-top" id="ruler-top" aria-hidden="true"></div>
+      <div class="ruler ruler-left" id="ruler-left" aria-hidden="true"></div>
+
+      <div class="stage-wrap">
+        <canvas id="stage" tabindex="0" role="application"
+                aria-label="Map of Farm Credit Association territories. Arrow keys move between territories; R rolls a random one; 1, 2 and 3 change the colouring."></canvas>
+        <div id="signpost" class="signpost" hidden role="dialog" aria-live="polite" aria-label="Association details"></div>
+        <p id="hud" class="hud" aria-hidden="true"></p>
+      </div>
+    </div>
+
+    <div class="controls">
+      <div class="modes" role="radiogroup" aria-label="Colour the map by">
+        <button type="button" role="radio" data-mode="terrain" aria-checked="true"><kbd>1</kbd>Terrain</button>
+        <button type="button" role="radio" data-mode="territory" aria-checked="false"><kbd>2</kbd>Territories</button>
+        <button type="button" role="radio" data-mode="district" aria-checked="false"><kbd>3</kbd>Districts</button>
+      </div>
+
+      <button id="roll" class="roll" type="button">
+        <svg class="die" viewBox="0 0 9 9" width="22" height="22" shape-rendering="crispEdges" aria-hidden="true">
+          <rect x="1" y="0" width="7" height="9" fill="#2b1d14"/><rect x="0" y="1" width="9" height="7" fill="#2b1d14"/>
+          <rect x="1" y="1" width="7" height="7" fill="#f7e6c4"/>
+          <g fill="#b23a6b"><rect x="2" y="2" width="1" height="1"/><rect x="6" y="2" width="1" height="1"/><rect x="4" y="4" width="1" height="1"/><rect x="2" y="6" width="1" height="1"/><rect x="6" y="6" width="1" height="1"/></g>
+        </svg>
+        Roll a territory <kbd>R</kbd>
+      </button>
+
+      <ul id="legend" class="legend" aria-label="Legend"></ul>
+
+      <div id="log" class="log">
+        <p class="log-label">Field log <strong><span id="log-count">0</span>/<span id="log-total">55</span></strong> found</p>
+        <div id="log-bar" class="log-bar" aria-hidden="true"></div>
+        <button id="log-reset" type="button" class="link-btn">Reset</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="gazetteer" aria-labelledby="gaz-title">
+    <div class="section-head">
+      <h2 id="gaz-title"><span class="plate-no">Index</span>Gazetteer</h2>
+      <p>All <span id="region-count">55</span> associations, grouped by the district bank that funds them. Grid squares refer to the rulers around the map.</p>
+    </div>
+
+    <div class="search">
+      <label for="search">Find</label>
+      <input id="search" type="search" placeholder="Association, city or state" autocomplete="off" spellcheck="false">
+      <p id="search-status" class="search-status" aria-live="polite"></p>
+    </div>
+
+    <div id="directory" class="banks"></div>
+  </section>
+
+  <p id="live" class="sr-only" role="status" aria-live="polite"></p>
+</main>
+
+<footer class="foot">
+  <div class="foot-inner">
+    <span class="emblem" data-emblem data-size="24"></span>
+    <p>
+      Territories, headquarters and leadership are drawn from the Farm Credit
+      Administration's public institution directory. County boundaries are
+      simplified to a tile grid, so shapes are approximate; where a county is
+      chartered to more than one association, the signpost names the others.
+      Alaska and Hawaii are shown as insets and Puerto Rico as an island.
+    </p>
+    <p>
+      An independent project, not affiliated with the Farm Credit Administration
+      or any Farm Credit institution.
+      <a href="https://github.com/dmhhughes/fcs_atlas">Source on GitHub</a>.
+    </p>
+    <p class="foot-small">Set in Pixelify Sans and Silkscreen, under the SIL Open Font License.</p>
+  </div>
+</footer>
+
+<script type="module" src="src/main.js"></script>
+</body>
+</html>

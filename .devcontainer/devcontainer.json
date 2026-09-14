@@ -1,0 +1,12 @@
+{
+  // Node 24 on Debian, published for amd64 and arm64, so it runs natively on
+  // Windows-on-ARM as well as in Codespaces. The pipeline has no native
+  // dependencies, so `npm ci` against the lockfile is the whole setup.
+  "name": "fcs_atlas",
+  "image": "mcr.microsoft.com/devcontainers/javascript-node:24-trixie",
+  "postCreateCommand": "npm ci",
+  "forwardPorts": [8080],
+  "portsAttributes": {
+    "8080": { "label": "Atlas (npm run serve)", "onAutoForward": "notify" }
+  }
+}

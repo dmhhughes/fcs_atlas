@@ -1,0 +1,259 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Terrain Painter (dev tool)</title>
+<style>
+  body {
+    margin: 0; padding: 16px;
+    background: #12192b; color: #e8e2d4;
+    font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 13px;
+  }
+  h1 { font-size: 15px; margin: 0 0 4px; }
+  p.lead { margin: 0 0 14px; opacity: 0.65; max-width: 70ch; line-height: 1.5; }
+  .bar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 12px; }
+  button, select, label {
+    font: inherit; color: #e8e2d4;
+    background: #22304d; border: 1px solid #3d5075;
+    border-radius: 4px; padding: 6px 10px; cursor: pointer;
+  }
+  button:hover { background: #2d3f66; }
+  button.primary { background: #2f6f4f; border-color: #418f68; }
+  .swatches { display: flex; gap: 4px; flex-wrap: wrap; }
+  .swatch {
+    display: flex; align-items: center; gap: 6px;
+    padding: 5px 9px; border: 2px solid transparent; border-radius: 4px;
+    background: #1b2540; cursor: pointer;
+  }
+  .swatch[aria-pressed="true"] { border-color: #e8c25a; }
+  .chip { width: 14px; height: 14px; border-radius: 3px; border: 1px solid #0006; }
+  canvas {
+    display: block; image-rendering: pixelated; cursor: crosshair;
+    border: 2px solid #2b3853; border-radius: 4px; background: #0d1424;
+    max-width: 100%;
+  }
+  .status { margin-top: 10px; opacity: 0.7; min-height: 1.4em; }
+  kbd { background: #22304d; border: 1px solid #3d5075; border-radius: 3px; padding: 1px 5px; }
+</style>
+</head>
+<body>
+
+<h1>Terrain Painter</h1>
+<p class="lead">
+  Development tool. The terrain layer produced by <code>npm run terrain</code> is
+  a seed generated from coarse geographic rules; this is where you fix whatever
+  looks wrong. Paint, then <strong>Export</strong> and drop the downloaded file
+  over <code>data/map.json</code>. Territory boundaries are drawn for reference
+  and are never modified &mdash; only the terrain layer is editable.
+  Hold <kbd>Shift</kbd> to sample the terrain under the cursor.
+</p>
+
+<div class="bar">
+  <div class="swatches" id="swatches"></div>
+  <label>Brush <select id="brush">
+    <option>1</option><option selected>2</option><option>3</option>
+    <option>5</option><option>8</option>
+  </select></label>
+  <button id="toggle-borders">Borders: on</button>
+  <button id="undo">Undo</button>
+  <button id="reload">Reload</button>
+  <button class="primary" id="export">Export map.json</button>
+</div>
+
+<canvas id="c"></canvas>
+<p class="status" id="status">Loading&hellip;</p>
+
+<script type="module">
+import { TERRAIN_NAMES, TERRAIN_COLORS } from '../src/tiles.js';
+
+const SCALE = 5; // screen pixels per tile
+const canvas = document.getElementById('c');
+const ctx = canvas.getContext('2d');
+const status = document.getElementById('status');
+
+let map = null;
+let brushTerrain = 1;
+let showBorders = true;
+const undoStack = [];
+
+const res = await fetch('../data/map.json');
+if (!res.ok) {
+  status.textContent = 'Could not load ../data/map.json - run `npm run build` first.';
+  throw new Error('no map');
+}
+map = await res.json();
+map.terrain = Array.from(map.terrain);
+
+canvas.width = map.width * SCALE;
+canvas.height = map.height * SCALE;
+
+// --- Palette ---------------------------------------------------------------
+const swatches = document.getElementById('swatches');
+TERRAIN_NAMES.forEach((name, i) => {
+  if (i === 0) return; // water is derived from the territory layer, not painted
+  const b = document.createElement('button');
+  b.className = 'swatch';
+  b.setAttribute('aria-pressed', String(i === brushTerrain));
+  b.innerHTML = `<span class="chip" style="background:${TERRAIN_COLORS[i].base}"></span>${name}`;
+  b.addEventListener('click', () => {
+    brushTerrain = i;
+    for (const el of swatches.children) el.setAttribute('aria-pressed', 'false');
+    b.setAttribute('aria-pressed', 'true');
+  });
+  swatches.append(b);
+});
+
+// --- Render ----------------------------------------------------------------
+function draw() {
+  const img = ctx.createImageData(canvas.width, canvas.height);
+  const px = img.data;
+
+  for (let ty = 0; ty < map.height; ty++) {
+    for (let tx = 0; tx < map.width; tx++) {
+      const i = ty * map.width + tx;
+      const water = map.assoc[i] < 0;
+      const hex = TERRAIN_COLORS[water ? 0 : map.terrain[i]].base;
+      const r = parseInt(hex.slice(1, 3), 16);
+      const g = parseInt(hex.slice(3, 5), 16);
+      const b = parseInt(hex.slice(5, 7), 16);
+
+      const edge = showBorders && !water && (
+        (tx + 1 < map.width && map.assoc[i + 1] !== map.assoc[i]) ||
+        (ty + 1 < map.height && map.assoc[i + map.width] !== map.assoc[i])
+      );
+
+      for (let dy = 0; dy < SCALE; dy++) {
+        for (let dx = 0; dx < SCALE; dx++) {
+          const o = ((ty * SCALE + dy) * canvas.width + tx * SCALE + dx) * 4;
+          const dim = edge && (dx === SCALE - 1 || dy === SCALE - 1) ? 0.55 : 1;
+          px[o] = r * dim; px[o + 1] = g * dim; px[o + 2] = b * dim; px[o + 3] = 255;
+        }
+      }
+    }
+  }
+  ctx.putImageData(img, 0, 0);
+}
+
+// --- Painting --------------------------------------------------------------
+let painting = false;
+let strokeEdits = null;
+
+function tileAt(ev) {
+  const rect = canvas.getBoundingClientRect();
+  const scaleX = canvas.width / rect.width;
+  const scaleY = canvas.height / rect.height;
+  return [
+    Math.floor(((ev.clientX - rect.left) * scaleX) / SCALE),
+    Math.floor(((ev.clientY - rect.top) * scaleY) / SCALE),
+  ];
+}
+
+function paint(tx, ty) {
+  const size = Number(document.getElementById('brush').value);
+  const half = Math.floor(size / 2);
+  let changed = false;
+
+  for (let dy = -half; dy < size - half; dy++) {
+    for (let dx = -half; dx < size - half; dx++) {
+      const x = tx + dx;
+      const y = ty + dy;
+      if (x < 0 || y < 0 || x >= map.width || y >= map.height) continue;
+      const i = y * map.width + x;
+      if (map.assoc[i] < 0) continue; // never paint the sea
+      if (map.terrain[i] === brushTerrain) continue;
+      strokeEdits.set(i, map.terrain[i]);
+      map.terrain[i] = brushTerrain;
+      changed = true;
+    }
+  }
+  return changed;
+}
+
+canvas.addEventListener('pointerdown', (ev) => {
+  const [tx, ty] = tileAt(ev);
+  if (tx < 0 || ty < 0 || tx >= map.width || ty >= map.height) return;
+
+  if (ev.shiftKey) { // eyedropper
+    const i = ty * map.width + tx;
+    if (map.assoc[i] >= 0) {
+      brushTerrain = map.terrain[i];
+      for (const [k, el] of [...swatches.children].entries()) {
+        el.setAttribute('aria-pressed', String(k + 1 === brushTerrain));
+      }
+      status.textContent = `Picked ${TERRAIN_NAMES[brushTerrain]}`;
+    }
+    return;
+  }
+
+  painting = true;
+  strokeEdits = new Map();
+  canvas.setPointerCapture(ev.pointerId);
+  if (paint(tx, ty)) draw();
+});
+
+canvas.addEventListener('pointermove', (ev) => {
+  const [tx, ty] = tileAt(ev);
+  if (tx < 0 || ty < 0 || tx >= map.width || ty >= map.height) return;
+  const i = ty * map.width + tx;
+  if (!painting) {
+    const region = map.assoc[i];
+    status.textContent =
+      `(${tx}, ${ty})  ${region < 0 ? 'ocean' : TERRAIN_NAMES[map.terrain[i]] + ' - region ' + region}`;
+    return;
+  }
+  if (paint(tx, ty)) draw();
+});
+
+function endStroke() {
+  if (!painting) return;
+  painting = false;
+  if (strokeEdits?.size) {
+    undoStack.push(strokeEdits);
+    if (undoStack.length > 50) undoStack.shift();
+    status.textContent = `Painted ${strokeEdits.size} tiles (${undoStack.length} undo steps)`;
+  }
+  strokeEdits = null;
+}
+canvas.addEventListener('pointerup', endStroke);
+canvas.addEventListener('pointercancel', endStroke);
+
+// --- Buttons ---------------------------------------------------------------
+document.getElementById('undo').addEventListener('click', () => {
+  const last = undoStack.pop();
+  if (!last) { status.textContent = 'Nothing to undo'; return; }
+  for (const [i, t] of last) map.terrain[i] = t;
+  draw();
+  status.textContent = `Undid ${last.size} tiles`;
+});
+
+document.getElementById('toggle-borders').addEventListener('click', (e) => {
+  showBorders = !showBorders;
+  e.target.textContent = `Borders: ${showBorders ? 'on' : 'off'}`;
+  draw();
+});
+
+document.getElementById('reload').addEventListener('click', async () => {
+  const r = await fetch('../data/map.json?t=' + Date.now());
+  map = await r.json();
+  map.terrain = Array.from(map.terrain);
+  undoStack.length = 0;
+  draw();
+  status.textContent = 'Reloaded from disk';
+});
+
+document.getElementById('export').addEventListener('click', () => {
+  const blob = new Blob([JSON.stringify(map)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'map.json';
+  a.click();
+  URL.revokeObjectURL(a.href);
+  status.textContent = 'Exported - replace data/map.json with the download';
+});
+
+draw();
+status.textContent = `${map.width}x${map.height} tiles loaded. Pick a terrain and paint.`;
+</script>
+</body>
+</html>
