@@ -4,9 +4,31 @@
   // dependencies, so `npm ci` against the lockfile is the whole setup.
   "name": "fcs_atlas",
   "image": "mcr.microsoft.com/devcontainers/javascript-node:24-trixie",
+
+  "features": {
+		// Install GitHub CLI
+		"ghcr.io/devcontainers/features/github-cli:1": {}
+	},
+
+	// Pass local git, GitHub CLI, and Claude Code credentials to the container
+	"mounts": [
+    "source=${localEnv:USERPROFILE}/.gitconfig,target=/node/.gitconfig,type=bind,consistency=cached",
+    "source=${localEnv:USERPROFILE}/.config/gh,target=/node/.config/gh,type=bind,consistency=cached",
+	  "source=${localEnv:USERPROFILE}/.claude,target=/node/.claude,type=bind,consistency=cached"
+    ],
+
   "postCreateCommand": "npm ci",
   "forwardPorts": [8080],
   "portsAttributes": {
     "8080": { "label": "Atlas (npm run serve)", "onAutoForward": "notify" }
-  }
+  },
+
+  // Configure tool-specific properties.
+	"customizations": {
+    "vscode": {
+      "extensions": [
+        "Anthropic.claude-code"
+      ]
+    }
+	}
 }
