@@ -6,10 +6,12 @@ Despeckled 1 orphan tiles.
 ## Regions grown to stay reachable
 
 - **First South Farm Credit, ACA**: 0 -> 14 tiles (+14 grown from HQ Madison, MS, taken from Southern AgCredit, ACA)
+- **Farm Credit Services of Colusa-Glenn, ACA**: 11 -> 14 tiles (+3 grown from HQ Colusa, CA, taken from American AgCredit, ACA; AgWest Farm Credit, ACA)
 
 ## Tile counts
 
 -   14  First South Farm Credit, ACA
+-   14  Farm Credit Services of Colusa-Glenn, ACA
 -   19  Central Kentucky Agricultural Credit Association
 -   22  Legacy Ag Credit, ACA
 -   29  Farm Credit Southeast Missouri, ACA
@@ -17,17 +19,16 @@ Despeckled 1 orphan tiles.
 -   31  Yosemite Farm Credit, ACA
 -   33  Fresno-Madera Farm Credit, ACA
 -   35  River Valley AgCredit, ACA
--   35  Farm Credit Services of Colusa-Glenn, ACA
 -   36  ArborOne, ACA
 -   36  Farm Credit of Western Kansas, ACA
 -   37  AG CREDIT, Agricultural Credit Association
 -   39  Premier Farm Credit, ACA
 -   46  Puerto Rico Farm Credit, ACA
 -   64  Farm Credit of Central Florida, ACA
--   66  Golden State Farm Credit, ACA
+-   66  Plains Land Bank, FLCA
 -   67  Farm Credit of Northwest Florida, ACA
--   70  Plains Land Bank, FLCA
 -   73  AgHeritage Farm Credit Services, ACA
+-   73  Golden State Farm Credit, ACA
 -   77  Mississippi Land Bank, ACA
 -   82  Alabama Farm Credit, ACA
 -   84  Colonial Farm Credit, ACA
@@ -47,20 +48,20 @@ Despeckled 1 orphan tiles.
 -  171  Oklahoma AgCredit, ACA
 -  186  Louisiana Land Bank, ACA
 -  196  Farm Credit of the Virginias, ACA
+-  239  Idaho AgCredit, ACA
 -  258  Horizon Farm Credit, ACA
 -  260  FCS Financial, ACA
 -  263  Farm Credit of Southern Colorado, ACA
--  283  Idaho AgCredit, ACA
 -  310  AgSouth Farm Credit, ACA
 -  339  GreenStone Farm Credit Services, ACA
 -  351  Texas Farm Credit Services
 -  365  Capital Farm Credit, ACA
 -  411  AgCountry Farm Credit Services, ACA
 -  479  Compeer Financial, ACA
--  562  AgTrust, ACA
+-  566  AgTrust, ACA
 -  578  Western AgCredit, ACA
 -  592  Farm Credit East, ACA
 -  609  Farm Credit Mid-America, ACA
-- 1149  American AgCredit, ACA
+- 1165  American AgCredit, ACA
 - 1253  Farm Credit Services of America, ACA
-- 2363  AgWest Farm Credit, ACA
+- 2405  AgWest Farm Credit, ACA

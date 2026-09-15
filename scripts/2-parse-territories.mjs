@@ -245,7 +245,37 @@ function segmentByState(text, geo) {
 // ---------------------------------------------------------------------------
 
 /** Words that turn a county name into the name of a geographic feature. */
-const FEATURE_SUFFIX = /^\s+(?:River|Creek|Bay|Mountains?|Range|Meridian|Baseline|Divide)\b/i;
+const FEATURE_SUFFIX = /^\s+(?:River|Creek|Bay|Mountains?|Range|Meridian|Baseline|Base|Divide)\b/i;
+
+/** "in all counties," - a statewide grant, unlike "all of the counties of X, Y". */
+const ALL_COUNTIES = /\ball\s+counties\b(?!\s+(?:of|in)\b)/i;
+
+/**
+ * Is this mention of a county a landmark in boundary prose rather than a grant?
+ * Each case below once added a county to a territory that does not include it.
+ * Skipping is safe because a county that really is granted is named somewhere
+ * else in the clause too: AgHeritage keeps White County despite "the White
+ * River", and AgWest keeps Siskiyou despite "the Modoc-Siskiyou County line".
+ */
+function isLandmark(hay, from, to, countyName, stateName) {
+  const before = hay.slice(Math.max(0, from - 12), from);
+  const after = hay.slice(to, to + 20);
+  const namesFeature = FEATURE_SUFFIX.test(' ' + countyName.split(/\s+/).pop());
+
+  // Legal text capitalises county names: "the north boundary line" is not Boundary County, Idaho.
+  if (!/[A-Z]/.test(hay[from])) return true;
+  // "the South Canadian River", "San Bernardino Base and Meridian".
+  if (FEATURE_SUFFIX.test(after) && !namesFeature) return true;
+  // The converse: "the Prairie Dog Town Fork of the Red River" is the river, not Red River County, Texas.
+  if (namesFeature && /\bthe\s+$/i.test(before)) return true;
+  // Hyphenated boundaries and place names: "the Mendocino-Glenn County line", "the
+  // Glenn-Butte County line", "the Butte City-Oroville Highway". Hyphenated county
+  // names (Miami-Dade) are matched whole, so they never reach this test.
+  if (/[A-Za-z]-$/.test(before) || /^(?:\s+[A-Z][a-z]+)?-[A-Z]/.test(after)) return true;
+  // "Twin Falls County, Idaho, thence" names the state, not Idaho County.
+  if (countyName === stateName && /\bCount(?:y|ies),\s*$/i.test(before)) return true;
+  return false;
+}
 
 /**
  * Find every county of `stateFips` named in `text`.
@@ -254,6 +284,7 @@ const FEATURE_SUFFIX = /^\s+(?:River|Creek|Bay|Mountains?|Range|Meridian|Baselin
  */
 function matchCounties(text, stateFips, geo) {
   const list = geo.countiesByState.get(stateFips) ?? [];
+  const stateName = geo.stateNameByFips.get(stateFips);
   const hay = deaccent(text);
   const consumed = new Array(hay.length).fill(false);
   const found = new Map(); // name -> fips (dedup by name for city/county collisions)
@@ -267,15 +298,10 @@ function matchCounties(text, stateFips, geo) {
       for (let i = from; i < to; i++) if (consumed[i]) { overlaps = true; break; }
       if (overlaps) continue;
 
-      // Rivers and ranges are routinely named after the county they run
-      // through, and boundary descriptions cite them constantly: "the South
-      // Canadian River" would otherwise add Canadian County, Oklahoma to a
-      // territory that never mentions it. Skipping the match is safe - a county
-      // that really is granted is named somewhere else in the clause too, which
-      // is why AgHeritage keeps White County despite "the White River".
-      if (FEATURE_SUFFIX.test(hay.slice(to, to + 14)) && !FEATURE_SUFFIX.test(' ' + c.name.split(/\s+/).pop())) {
-        continue;
-      }
+      // Boundary descriptions cite counties, rivers and meridians constantly:
+      // "the South Canadian River" would otherwise add Canadian County,
+      // Oklahoma to a territory that never mentions it.
+      if (isLandmark(hay, from, to, c.name, stateName)) continue;
 
       for (let i = from; i < to; i++) consumed[i] = true;
 
@@ -306,8 +332,11 @@ function matchCounties(text, stateFips, geo) {
   for (const tok of suspiciousLeftovers(leftoverOf())) {
     const norm = tok.toLowerCase().replace(/[^a-z]/g, '');
     if (norm.length < 5) continue;
+    // Exactly one edit. An exact name left over is one the first pass skipped
+    // on purpose as a landmark ("the Mendocino-Glenn County line"); treating it
+    // as a typo of itself would put the county straight back.
     const hit = list.find(
-      (c) => !taken.has(c.fips) && editDistance(norm, c.name.toLowerCase().replace(/[^a-z]/g, ''), 1) <= 1
+      (c) => !taken.has(c.fips) && editDistance(norm, c.name.toLowerCase().replace(/[^a-z]/g, ''), 1) === 1
     );
     if (!hit) continue;
 
@@ -433,7 +462,16 @@ function parseTerritory(rec, geo) {
       const all = geo.countiesByState.get(st.fips) ?? [];
 
       let granted;
-      if (hit.fips.length > 0) {
+      if (ALL_COUNTIES.test(include)) {
+        // "In the State of New Mexico, in all counties, the lending authorities
+        // granted under Title I of the Act, and, in the counties of Chaves, ...
+        // the lending authorities granted under Title II": a statewide grant that
+        // also names counties for a second authority. Naming them must not
+        // shrink the grant to those counties, which once cost American AgCredit
+        // 21 of New Mexico's 33.
+        granted = new Set(all.map((c) => c.fips));
+        wholeStates.push(stateName);
+      } else if (hit.fips.length > 0) {
         granted = new Set(hit.fips);
       } else {
         // No counties named for this state. Either a whole-state grant, or a

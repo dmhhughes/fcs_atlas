@@ -71,7 +71,7 @@ low in the west.
 | 3 | `3-build-map.mjs` | Projects counties, rasterises at 4× and majority-votes down to a 200×125 tile grid; closes enclaves; writes `data/map.json` (tiles, regions, graticule) and `data/directory.web.json` (associations, banks, stats). |
 
 ```
-npm test          # geometry, hit testing, keyboard reachability, grouping, no-scroll invariants
+npm test          # geometry, hit testing, keyboard reachability, grouping, no-scroll invariants, parse regressions
 npm run preview   # render the map headlessly, through the page's own renderer
 npm run coverage  # render any land that no association claims
 ```
@@ -114,6 +114,17 @@ Things that turned out to matter:
 - **Rivers are named after counties.** "The South Canadian River" once added
   Canadian County, Oklahoma. A county name followed by River, Creek, Range and
   the like is skipped.
+- **Boundary prose names counties it does not grant.** "The Mendocino-Glenn
+  County line", "the Butte City-Oroville Highway", "Twin Falls County, Idaho",
+  "the north boundary line", "San Bernardino Base and Meridian" and "the Red
+  River" each once added a whole county, and five of them were drawn on the
+  map. Hyphenated boundaries, a state named after "County,", lowercase words,
+  survey meridians and "the" before a river-named county are all skipped.
+  `npm test` pins every case, alongside the genuine grants the same rules could
+  over-correct.
+- **A statewide grant can also name counties.** American AgCredit lends under
+  Title I "in all counties" of New Mexico and under Title II in twelve named
+  ones. That is read as all 33, not as a twelve-county list.
 - **The source has typos** (`Autaugo`, `Mechlenburg`, `Chattachoochee`,
   `Loraine`, `Green`). Recovered by single-edit distance within the state, and
   logged.

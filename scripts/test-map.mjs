@@ -194,6 +194,52 @@ before = failures.length;
 }
 console.log(`7. no scroll on selection  ${failures.length === before ? 'ok' : 'FAIL'}`);
 
+// --- 8. Territory parse regressions ------------------------------------------
+// Boundary prose names counties it does not grant, and each county below was
+// once parsed as a grant - confirmed against the FCA's own territory maps. The
+// controls beside them are genuine grants the same rules could over-correct.
+before = failures.length;
+{
+  const full = JSON.parse(await readFile(join(DATA, 'associations.json'), 'utf8'));
+  const byUninum = new Map(full.map((a) => [a.uninum, a]));
+  const has = (uninum, fips) => byUninum.get(uninum)?.counties.includes(fips);
+  const nameOf = (uninum) => byUninum.get(uninum)?.name ?? uninum;
+
+  const NOT_GRANTED = [
+    [810586, '48387', 'Red River, TX', '"the Prairie Dog Town Fork of the Red River"'],
+    [725031, '16049', 'Idaho County, ID', '"Twin Falls County, Idaho, thence"'],
+    [725031, '16021', 'Boundary, ID', '"the north boundary line"'],
+    [725466, '06045', 'Mendocino, CA', '"the Mendocino-Glenn County line"'],
+    [725466, '06007', 'Butte, CA', '"the Butte City-Oroville Highway"'],
+    [725355, '06071', 'San Bernardino, CA', '"San Bernardino Base and Meridian"'],
+  ];
+  for (const [uninum, fips, county, source] of NOT_GRANTED) {
+    check(!has(uninum, fips), `${nameOf(uninum)}: ${county} parsed as a grant from ${source}`);
+  }
+
+  const GRANTED = [
+    [725466, '06011', 'Colusa, CA'],
+    [725466, '06021', 'Glenn, CA'],
+    [725031, '16083', 'Twin Falls, ID'],
+    [725031, '16073', 'Owyhee, ID'],
+    [710454, '48387', 'Red River, TX'],
+    [710812, '48387', 'Red River, TX'],
+    [710981, '22081', 'Red River Parish, LA'],
+    [725355, '06093', 'Siskiyou, CA'],
+    [725355, '06049', 'Modoc, CA'],
+    [720376, '12086', 'Miami-Dade, FL'],
+    [725203, '06071', 'San Bernardino, CA'],
+  ];
+  for (const [uninum, fips, county] of GRANTED) {
+    check(has(uninum, fips), `${nameOf(uninum)}: lost ${county}`);
+  }
+
+  // "in all counties, the lending authorities granted under Title I" is statewide.
+  const nm = byUninum.get(725203)?.counties.filter((f) => f.startsWith('35')).length;
+  check(nm === 33, `American AgCredit: ${nm} of New Mexico's 33 counties, expected all`);
+}
+console.log(`8. territory regressions   ${failures.length === before ? 'ok' : 'FAIL'}`);
+
 // --- Result ------------------------------------------------------------------
 console.log();
 if (failures.length) {

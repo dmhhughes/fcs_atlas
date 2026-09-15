@@ -21,7 +21,7 @@ Individual steps: `npm run fetch`, `npm run parse`, `npm run map`.
 
 The same commands work inside the dev container (`.devcontainer/`, Node 24, `npm ci` on create, port 8080 forwarded). Headless-Edge screenshots (below) run on the host against the forwarded port.
 
-`npm test` is a single script of seven numbered checks that runs in about a second. There is no per-test filter, so run it whole. There is no linter or formatter. The page must be served over HTTP, because ES modules and `fetch()` fail under `file://`.
+`npm test` is a single script of eight numbered checks that runs in about a second. There is no per-test filter, so run it whole. There is no linter or formatter. The page must be served over HTTP, because ES modules and `fetch()` fail under `file://`.
 
 ## Pipeline gotchas
 

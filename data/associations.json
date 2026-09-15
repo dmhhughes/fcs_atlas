@@ -266,6 +266,7 @@
       "48343",
       "48353",
       "48363",
+      "48387",
       "48415",
       "48417",
       "48429",
@@ -280,8 +281,7 @@
       710566,
       710812,
       725203,
-      725940,
-      810586
+      725940
     ],
     "commodity": null,
     "territoryText": "In the State of Texas, the Counties of Bell, Bosque, Bowie, Burnet, Camp, Cass, Cochran, Cooke, Coryell, Dallas, Delta, Denton, Eastland, Ellis, Erath, Falls, Fannin, Fisher, Freestone, Grayson, Hamilton, Hill, Hood, Johnson, Lamar, Lampasas, Limestone, McLennan, Milam, Mitchell, Morris, Navarro, Nolan, Palo Pinto, Parker, Red River, Scurry, Shackelford, Somervell, Stephens, Tarrant, Taylor, Throckmorton, Titus, Williamson, Wise, and Young, and that portion of Borden County lying east of the east line of Block 31, Township 6 N, thence 6 miles west along the south line of same block, thence south to the south county line of Borden County along the east line of Block 32, Townships 5 N, 4 N, and 3 N, and in southwestern Kent County Blocks 5, 4, 97, and K.\n\n\n\nIn the State of New Mexico, all Counties except San Juan and that portion of Rio Arriba lying west of the Continental Divide. The Association may not exercise any lending authority under Title I of the Farm Credit Act of 1971, as amended in the State of New Mexico."
@@ -852,8 +852,7 @@
       710269,
       710454,
       710566,
-      710862,
-      810586
+      710862
     ],
     "commodity": null,
     "territoryText": "In the State of Texas, the Counties of Anderson, Angelina, Aransas, Atascosa, Austin, Bandera, Bee, Bexar, Bowie, Brooks, Cameron, Camp, Cass, Chambers, Cherokee, Collin, Cooke, Dallas, Delta, Denton, DeWitt, Dimmit, Duval, Edwards, Fannin, Fayette, Franklin, Freestone, Frio, Goliad, Gonzales, Grayson, Gregg, Guadalupe, Hardin, Harrison, Henderson, Hidalgo, Hopkins, Houston, Hunt, Jasper, Jefferson, Jim Hogg, Jim Wells, Karnes, Kaufman, Kenedy, Kerr, Kinney, Kleberg, Lamar, La Salle, Lavaca, Leon, Liberty, Limestone, Live Oak, Marion, Maverick, McMullen, Medina, Montgomery, Morris, Nacogdoches, Newton, Nueces, Orange, Panola, Polk, Rains, Real, Red River, Rockwall, Rusk, Sabine, San Augustine, San Jacinto, San Patricio, Shelby, Smith, Starr, Tarrant, Titus, Trinity, Tyler, Upshur, Uvalde, Val Verde, Van Zandt, Walker, Waller, Washington, Webb, Willacy, Wilson, Wood, Zapata, Zavala, and that part of Lee County south and east of State Highway 21 and that part of Refugio County lying west of a line formed by the Copano Creek, an intermittent stream from the Goliad County line at a point seven miles east of State Highway 29 and continuing across Refugio County to form a junction with Aransas County. (The term \"intermittent stream\" is the description on general highway maps of Goliad and Refugio Counties dated 1936.)"
@@ -6507,7 +6506,6 @@
       "16011",
       "16013",
       "16019",
-      "16021",
       "16023",
       "16025",
       "16029",
@@ -6517,7 +6515,6 @@
       "16041",
       "16043",
       "16047",
-      "16049",
       "16051",
       "16053",
       "16059",
@@ -6538,7 +6535,6 @@
       "16011",
       "16013",
       "16019",
-      "16021",
       "16023",
       "16025",
       "16029",
@@ -6548,7 +6544,6 @@
       "16041",
       "16043",
       "16047",
-      "16049",
       "16051",
       "16053",
       "16059",
@@ -6888,18 +6883,39 @@
       "32031",
       "32033",
       "32510",
+      "35001",
+      "35003",
       "35005",
+      "35006",
+      "35007",
+      "35009",
+      "35011",
       "35013",
       "35015",
       "35017",
+      "35019",
+      "35021",
       "35023",
       "35025",
       "35027",
+      "35028",
       "35029",
+      "35031",
+      "35033",
       "35035",
+      "35037",
       "35039",
+      "35041",
+      "35043",
       "35045",
+      "35047",
+      "35049",
       "35051",
+      "35053",
+      "35055",
+      "35057",
+      "35059",
+      "35061",
       "40071",
       "40103",
       "40113"
@@ -6917,6 +6933,7 @@
       "06035",
       "06037",
       "06041",
+      "06045",
       "06049",
       "06051",
       "06053",
@@ -7023,7 +7040,6 @@
       725355,
       725429,
       725450,
-      725466,
       725676,
       725818,
       725839,
@@ -7557,7 +7573,6 @@
       "06057",
       "06061",
       "06067",
-      "06071",
       "06079",
       "06083",
       "06093",
@@ -7809,10 +7824,12 @@
       "16009",
       "16015",
       "16017",
+      "16021",
       "16027",
       "16035",
       "16039",
       "16045",
+      "16049",
       "16055",
       "16057",
       "16061",
@@ -7958,7 +7975,6 @@
       725031,
       725203,
       725247,
-      725466,
       725818
     ],
     "commodity": null,
@@ -8107,20 +8123,14 @@
       "California"
     ],
     "counties": [
-      "06007",
       "06011",
-      "06021",
-      "06045"
+      "06021"
     ],
     "ownedCounties": [
-      "06007",
       "06011",
-      "06021",
-      "06045"
+      "06021"
     ],
     "sharedWith": [
-      725203,
-      725355,
       725818
     ],
     "commodity": null,
@@ -8367,6 +8377,7 @@
       "06107"
     ],
     "ownedCounties": [
+      "06007",
       "06031",
       "06089",
       "06103",
@@ -8636,7 +8647,6 @@
       "48359",
       "48375",
       "48381",
-      "48387",
       "48393"
     ],
     "ownedCounties": [
@@ -8656,14 +8666,11 @@
       "48359",
       "48375",
       "48381",
-      "48387",
       "48393"
     ],
     "sharedWith": [
       710269,
-      710454,
-      710566,
-      710812
+      710566
     ],
     "commodity": null,
     "territoryText": "In the State of Texas, the Counties of Armstrong, Briscoe, Carson, Floyd, Gray, Hale, Hansford, Hemphill, Hutchinson, Lipscomb, Motley, Ochiltree, Oldham, Potter, Randall, and Roberts and that portion of Hall County south of the center of the Prairie Dog Town Fork of the Red River and west of the line formed by the western boundaries of Sections 10 and 49 in the J. Poitevent Block 1 and Section 13 in the A. B. & M. Block A, thence from the southwest corner of Section 13 in the A. B. & M. Block A diagonally to the northwest corner of Section 14 in the Melvin & Stewart Block J, thence south along the western boundaries of Sections 14 and 13 in the Melvin & Stewart Block J and the western boundaries of Sections 78, 77, 76, 75, 74, 73, 72, 71, and 70 in the Denison & Pacific R. R. C & O. Block S."
