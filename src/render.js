@@ -6,13 +6,13 @@
  */
 
 export const OVERLAY = {
-  hoverWash: 'rgba(247, 230, 196, 0.18)',
-  hoverLine: '#f7e6c4',
-  selectWash: 'rgba(255, 215, 106, 0.24)',
-  selectBacking: 'rgba(28, 16, 10, 0.9)',
-  selectLine: '#ffd76a',
-  marker: '#e85d8f',
-  ping: '#e85d8f',
+  hoverWash: 'rgba(35, 36, 31, 0.12)',
+  hoverLine: '#55564c',
+  selectWash: 'rgba(178, 58, 46, 0.16)',
+  selectBacking: 'rgba(35, 36, 31, 0.85)',
+  selectLine: '#b23a2e',
+  marker: '#b23a2e',
+  ping: '#b23a2e',
 };
 
 /**
@@ -35,8 +35,8 @@ export function renderFrame(ctx, map, { mode, unit, hovered = -1, selected = -1,
   }
 
   if (selected >= 0) {
-    // The low sun "spotlights" the chosen territory: a gold line over a dark
-    // backing, which reads on every territory and district colour.
+    // The declination-red line over an ink backing reads on every territory
+    // and district colour, like a hand-marked selection on a printed sheet.
     map.fillRegion(ctx, selected, OVERLAY.selectWash);
     map.strokeRegion(ctx, selected, OVERLAY.selectBacking, 4 * unit);
     map.strokeRegion(ctx, selected, OVERLAY.selectLine, 2 * unit);

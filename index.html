@@ -4,26 +4,38 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Farm Credit Territory Atlas</title>
-<meta name="description" content="Every Farm Credit lending association in the United States, drawn as an interactive pixel map of the territory it serves.">
-<meta name="theme-color" content="#1c1530">
-<link rel="preload" href="assets/fonts/pixelify-sans.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="preload" href="assets/fonts/silkscreen-400.woff2" as="font" type="font/woff2" crossorigin>
+<meta name="description" content="Every Farm Credit lending association in the United States, charted as an interactive map of the territory it serves.">
+<meta name="theme-color" content="#ede7d6">
+<link rel="preload" href="assets/fonts/fraunces.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="assets/fonts/vollkorn.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="styles.css">
 </head>
 <body>
 <a class="skip" href="#plate">Skip to the map</a>
 
 <header class="hero">
-  <canvas id="scene" aria-hidden="true"></canvas>
-  <div class="cartouche">
-    <span class="orn" aria-hidden="true"></span>
-    <div class="cartouche-body">
+  <div class="title-block frame">
+    <div class="title-main">
       <span class="emblem" data-emblem data-size="40"></span>
-      <p class="eyebrow">The Farm Credit System</p>
-      <h1>Territory Atlas</h1>
-      <p class="tagline">Every lending association in America, drawn as a pixel map of the land it serves.</p>
+      <div>
+        <p class="eyebrow">The Farm Credit System</p>
+        <h1>Territory Atlas</h1>
+        <p class="tagline">Every lending association in America, charted by the land it's chartered to serve.</p>
+      </div>
     </div>
-    <span class="orn orn-r" aria-hidden="true"></span>
+    <div class="title-marginalia" aria-hidden="true">
+      <svg class="compass" viewBox="0 0 32 40" shape-rendering="geometricPrecision">
+        <text x="16" y="7" text-anchor="middle" font-size="7">N</text>
+        <path fill="currentColor" d="M16 12 L19.5 22.5 L30 26 L19.5 29.5 L16 40 L12.5 29.5 L2 26 L12.5 22.5 Z"/>
+      </svg>
+      <div class="scale">
+        <div class="scale-bar">
+          <span></span><span></span><span></span><span></span>
+        </div>
+        <div class="scale-labels"><span>0</span><span>100&nbsp;mi</span></div>
+      </div>
+      <p class="series-line">Compiled from the FCA institution directory</p>
+    </div>
   </div>
 </header>
 
@@ -43,7 +55,7 @@
       <p>Hover or click a territory to see who serves it. The arrow keys travel to the neighbouring territory in that direction.</p>
     </div>
 
-    <div class="plate" id="plate">
+    <div class="plate frame" id="plate">
       <div class="ruler-corner" aria-hidden="true">
         <svg viewBox="0 0 7 9" width="14" height="18" shape-rendering="crispEdges">
           <g fill="currentColor"><rect x="3" y="0" width="1" height="1"/><rect x="2" y="1" width="3" height="1"/><rect x="1" y="2" width="5" height="1"/><rect x="3" y="3" width="1" height="2"/></g>
@@ -104,7 +116,7 @@
       or any Farm Credit institution.
       <a href="https://github.com/dmhhughes/fcs_atlas">Source on GitHub</a>.
     </p>
-    <p class="foot-small">Set in Pixelify Sans and Silkscreen, under the SIL Open Font License.</p>
+    <p class="foot-small">Set in Fraunces, Vollkorn and JetBrains Mono, under the SIL Open Font License.</p>
   </div>
 </footer>
 

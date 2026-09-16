@@ -1,43 +1,48 @@
 /**
- * Palette - "golden hour".
+ * Palette - "the quadrangle".
  *
- * The map is lit as if at half past four on an autumn afternoon: warm, low
- * light from the west over a violet sea.
+ * The map reads as a flat printed survey sheet: paper and ink, hypsometric
+ * tints instead of a lit landscape, no directional light.
  */
+
+/** The sea: one flat chart tint, no distance banding. */
+export const SEA = '#4a616b';
 
 /**
- * The sea, banded by distance from the coast like a 16-bit overworld: a bright
- * surf ring, shallows, then deep water. Index = tiles from the nearest land.
+ * Flat ink linework - no raking light on a printed chart. Territory and
+ * district lines are solid (not translucent): each side of a shared border
+ * is traced and stroked independently (see map.js), so two adjacent
+ * territories' hairlines sit almost but not quite on top of each other -
+ * translucent ink would show that as a faint double line.
  */
-export const SEA_BANDS = ['#2a2150', '#4a3a7c', '#3b2f6b', '#32285e', '#2a2150'];
-
-/** Low sun from the west-northwest: lit coasts face it, shadowed coasts don't. */
 export const LIGHT = {
-  highlight: 'rgba(255, 215, 106, 0.55)',
-  shadow: 'rgba(22, 12, 34, 0.55)',
-  glint: '#f5a54a',
-  graticule: 'rgba(185, 168, 214, 0.28)',
-  border: 'rgba(43, 27, 18, 0.42)',
-  districtBorder: 'rgba(28, 16, 10, 0.9)',
+  // Every territory polygon is stroked with this, always - it reads as the
+  // coastline wherever the territory borders open sea, and as the internal
+  // border wherever it borders another territory. One line style, no need to
+  // tell the two apart.
+  territoryLine: '#23241f',
+  graticule: 'rgba(138, 90, 50, 0.32)',
+  districtBorder: '#23241f',
 };
 
 /** One colour per funding bank, for the district view and the gazetteer. */
 export const DISTRICT_COLORS = {
-  AgFirst: '#e0648f',
-  AgriBank: '#f0a543',
-  CoBank: '#9b86d6',
-  Texas: '#7fb58f',
+  AgFirst: '#7c5a34',
+  AgriBank: '#5e7a4c',
+  CoBank: '#8a5c6e',
+  Texas: '#b08a3e',
 };
-export const DISTRICT_FALLBACK = '#b9a8d6';
+export const DISTRICT_FALLBACK = '#9c8760';
 
 /**
  * Deterministic colour per association, spaced around the wheel by the golden
- * angle so neighbours stay distinguishable. Held a little softer than full
- * saturation so 55 hues still sit inside the dusk palette.
+ * angle so neighbours stay distinguishable. Held to an earth/vegetation hue
+ * arc and low saturation so 55 tints read as hypsometric shading rather than
+ * confetti; blue is left to the sea and red to the selection accent.
  */
 export function regionColor(index) {
-  const hue = (index * 137.508) % 360;
-  return `hsl(${hue.toFixed(1)} 46% 60%)`;
+  const hue = 25 + ((index * 137.508) % 125);
+  return `hsl(${hue.toFixed(1)} 38% 54%)`;
 }
 
 /** Stable per-tile pseudo-random value in [0,1). */

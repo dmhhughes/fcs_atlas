@@ -39,7 +39,7 @@ export class Signpost {
     const hq = [a.hq.city, a.hq.state].filter(Boolean).join(', ');
 
     this.root.innerHTML = `
-      <article class="sign" style="--district:${esc(color)}">
+      <article class="sign frame" style="--district:${esc(color)}">
         <button class="sign-close" type="button" data-close aria-label="Close">&times;</button>
         <p class="sign-eyebrow">
           <span class="sign-chip" aria-hidden="true"></span>

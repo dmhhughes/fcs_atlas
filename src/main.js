@@ -11,9 +11,8 @@ import { GameMap } from './map.js';
 import { renderFrame } from './render.js';
 import { Signpost } from './signpost.js';
 import { neighborInDirection, nearestRegion } from './navigate.js';
-import { mountScene } from './scene.js';
 import { emblemSvg, installFavicon } from './emblem.js';
-import { SEA_BANDS, DISTRICT_COLORS, DISTRICT_FALLBACK } from './tiles.js';
+import { SEA, DISTRICT_COLORS, DISTRICT_FALLBACK } from './tiles.js';
 
 const KEY_DIRECTIONS = {
   ArrowUp: 'up', ArrowDown: 'down', ArrowLeft: 'left', ArrowRight: 'right',
@@ -25,16 +24,14 @@ const MODE_KEYS = { 1: 'territory', 2: 'district' };
 const CELL = 200;
 const COLS = 'ABCDEFGHIJKLMNOP';
 
-const DEEP_SEA = SEA_BANDS[SEA_BANDS.length - 1];
+const DEEP_SEA = SEA;
 const reducedMotion = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 async function boot() {
-  installFavicon('#ffd76a', '#1c1530');
+  installFavicon('#23241f', '#ede7d6');
   for (const el of document.querySelectorAll('[data-emblem]')) {
     el.innerHTML = emblemSvg({ fg: 'currentColor', size: Number(el.dataset.size) || 32 });
   }
-  const sceneCanvas = document.getElementById('scene');
-  if (sceneCanvas) mountScene(sceneCanvas);
 
   const [mapData, directory] = await Promise.all([
     fetch('data/map.json').then((r) => r.json()),

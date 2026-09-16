@@ -1,103 +1,73 @@
 /* ==========================================================================
-   Farm Credit Territory Atlas - "golden hour"
-   Half past four on an autumn afternoon: violet sea, amber fields, a low sun
-   in the west. Everything sits on a 4px pixel grid; frames are drawn with
-   offset shadows so their corners stay notched, the way 16-bit UI boxes were.
+   Farm Credit Territory Atlas - "the quadrangle"
+   Drawn like a printed USGS survey sheet: paper and ink, flat hypsometric
+   tints, no directional light. A double neat-line frames the plate and its
+   marginalia, the way a real quadrangle frames itself.
    ========================================================================== */
 
 @font-face {
-  font-family: 'Pixelify Sans';
-  src: url('assets/fonts/pixelify-sans.woff2') format('woff2');
+  font-family: 'Fraunces';
+  src: url('assets/fonts/fraunces.woff2') format('woff2');
   font-weight: 400 700;
   font-display: swap;
 }
 @font-face {
-  font-family: 'Silkscreen';
-  src: url('assets/fonts/silkscreen-400.woff2') format('woff2');
-  font-weight: 400;
+  font-family: 'Vollkorn';
+  src: url('assets/fonts/vollkorn.woff2') format('woff2');
+  font-weight: 400 700;
   font-display: swap;
 }
 @font-face {
-  font-family: 'Silkscreen';
-  src: url('assets/fonts/silkscreen-700.woff2') format('woff2');
-  font-weight: 700;
+  font-family: 'JetBrains Mono';
+  src: url('assets/fonts/jetbrains-mono.woff2') format('woff2');
+  font-weight: 400 700;
   font-display: swap;
-}
-/* Digits only, from Silkscreen. Pixelify Sans draws a 5 that reads as an S at
-   text sizes ("55 associations" became "SS", "150 counties" became "180"), so
-   every numeral on the page is taken from Silkscreen's angular set instead,
-   while letters and punctuation stay in Pixelify. */
-@font-face {
-  font-family: 'Atlas Digits';
-  src: url('assets/fonts/silkscreen-400.woff2') format('woff2');
-  font-weight: 400 600;
-  font-display: swap;
-  unicode-range: U+0030-0039;
-}
-@font-face {
-  font-family: 'Atlas Digits';
-  src: url('assets/fonts/silkscreen-700.woff2') format('woff2');
-  font-weight: 700;
-  font-display: swap;
-  unicode-range: U+0030-0039;
 }
 
 :root {
-  --night: #1c1530;
-  --dusk: #2b2147;
-  --dusk-2: #3a2d5c;
-  --violet: #5b4785;
-  --lilac: #b9a8d6;
-  --rose: #e85d8f;
-  --rose-deep: #b23a6b;
-  --amber: #f5a54a;
-  --sun: #ffd76a;
-  --parchment: #f7e6c4;
-  --parchment-2: #ecd2a4;
-  --soil: #443300;
-  --ink: #2b1d14;
+  --paper: #ede7d6;
+  --paper-2: #e2dbc4;
+  --ink: #23241f;
+  --ink-soft: #55564c;
+  --soil: #6a4a24;
+  --contour: #8a5a32;
+  --water: #6f8fa0;
+  --declination: #b23a2e;
+  --rule: #c8bfa0;
 
-  --px: 4px;
-  --f-display: 'Atlas Digits', 'Pixelify Sans', 'Silkscreen', ui-monospace, 'Cascadia Mono', Consolas, monospace;
-  --f-label: 'Silkscreen', 'Pixelify Sans', ui-monospace, Consolas, monospace;
+  --f-display: 'Fraunces', Georgia, serif;
+  --f-body: 'Vollkorn', Georgia, serif;
+  --f-label: 'JetBrains Mono', ui-monospace, 'Cascadia Mono', Consolas, monospace;
 
-  color-scheme: dark;
+  color-scheme: light;
 }
 
 * { box-sizing: border-box; }
 
-html { background: var(--night); }
+html { background: var(--paper); }
 
 body {
   margin: 0;
-  background: var(--night);
-  color: var(--parchment);
-  font: 400 16px/1.5 var(--f-display);
+  background: var(--paper);
+  color: var(--ink);
+  font: 400 16px/1.5 var(--f-body);
   text-rendering: optimizeSpeed;
 }
 
-/* Forced crisp/no-antialias rendering, reserved for large pixel-display type
-   where the notched-pixel look matters. Everything else anti-aliases
-   normally, which is what keeps small label and body text legible. */
-h1, .section-head h2, .stats strong, .sign-name {
-  -webkit-font-smoothing: none;
-  -moz-osx-font-smoothing: grayscale;
-}
-
 img, svg, canvas { image-rendering: pixelated; }
-a { color: var(--sun); }
+a { color: var(--declination); }
 kbd {
   font: 700 8px/1 var(--f-label);
   display: inline-block;
   padding: 3px 4px 2px;
   margin-right: 8px;
-  color: var(--night);
-  background: var(--lilac);
-  box-shadow: 0 2px 0 0 var(--violet);
+  color: var(--paper);
+  background: var(--ink);
+  box-shadow: 0 2px 0 0 var(--soil);
   vertical-align: 2px;
 }
 
-:focus-visible { outline: 2px solid var(--sun); outline-offset: 2px; }
+:focus-visible { outline: 2px solid var(--declination); outline-offset: 2px; }
 
 .sr-only {
   position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
@@ -106,19 +76,16 @@ kbd {
 
 .skip {
   position: absolute; left: 8px; top: -48px; z-index: 10;
-  padding: 8px 12px; background: var(--sun); color: var(--ink);
+  padding: 8px 12px; background: var(--declination); color: var(--paper);
   font: 700 16px var(--f-label); text-decoration: none;
 }
 .skip:focus { top: 8px; }
 
-/* Pixel frame: four offset shadows draw a border with notched corners. */
+/* Neat-line: a printed sheet's double border - a rule, a paper gap, a rule -
+   plus the drop shadow every mounted plate/card in this layout shares. */
 .frame {
-  --frame: var(--ink);
-  box-shadow:
-    0 calc(-1 * var(--px)) 0 0 var(--frame),
-    0 var(--px) 0 0 var(--frame),
-    calc(-1 * var(--px)) 0 0 0 var(--frame),
-    var(--px) 0 0 0 var(--frame);
+  border: 2px solid var(--ink);
+  box-shadow: 0 0 0 6px var(--paper), 0 0 0 8px var(--ink), 4px 6px 0 0 rgba(35, 36, 31, 0.18);
 }
 
 /* --- Hero ------------------------------------------------------------------ */
@@ -127,43 +94,22 @@ kbd {
   padding-bottom: 8px;
 }
 
-#scene {
-  display: block;
-  width: 100%;
-  height: 224px;
-  background: linear-gradient(#1c1530, #c4577f 60%, #9c6d2c 62%);
-}
-
-.cartouche {
-  position: relative;
-  z-index: 1;
+.title-block {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  justify-content: center;
-  gap: 16px;
-  width: min(640px, calc(100% - 32px));
-  margin: -96px auto 0;
-}
-
-.cartouche-body {
-  --frame: var(--ink);
-  flex: 1;
-  text-align: center;
-  padding: 20px 24px 20px;
-  background: var(--parchment);
+  justify-content: space-between;
+  gap: 20px 32px;
+  width: min(1180px, calc(100% - 32px));
+  margin: 24px auto 0;
+  padding: 20px 28px;
+  background: var(--paper-2);
   color: var(--ink);
-  box-shadow:
-    0 calc(-1 * var(--px)) 0 0 var(--frame),
-    0 var(--px) 0 0 var(--frame),
-    calc(-1 * var(--px)) 0 0 0 var(--frame),
-    var(--px) 0 0 0 var(--frame),
-    inset 0 0 0 4px var(--parchment),
-    inset 0 0 0 6px var(--soil),
-    8px 12px 0 0 rgba(12, 6, 24, 0.55);
 }
 
-.emblem { display: inline-block; line-height: 0; color: var(--soil); }
-.cartouche .emblem { color: var(--rose-deep); margin-bottom: 8px; }
+.title-main { display: flex; align-items: center; gap: 16px; }
+
+.emblem { display: inline-block; flex: none; line-height: 0; color: var(--declination); }
 
 .eyebrow {
   margin: 0 0 4px;
@@ -172,37 +118,54 @@ kbd {
   text-transform: uppercase;
   color: var(--soil);
 }
-.cartouche .eyebrow { font-size: 16px; letter-spacing: 0.18em; }
 
 h1 {
   margin: 0;
-  font: 700 48px/1 var(--f-display);
+  font: 700 40px/1 var(--f-display);
   letter-spacing: 0.01em;
   color: var(--ink);
-  text-shadow: 3px 3px 0 var(--amber);
 }
 
 .tagline {
-  margin: 12px auto 0;
+  margin: 8px 0 0;
   max-width: 44ch;
-  font-size: 17px;
-  line-height: 1.6;
+  font-family: var(--f-body);
+  font-size: 16px;
+  line-height: 1.5;
   letter-spacing: 0.01em;
-  color: #5a4420;
+  color: var(--ink-soft);
 }
 
-/* Ears of wheat either side of the plate - symmetric, and nothing like the
-   prev/next arrows a pair of chevrons in this position would be mistaken for. */
-.orn {
-  flex: none;
-  width: 28px;
-  height: 48px;
-  background: var(--sun);
-  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 7 12' shape-rendering='crispEdges'%3E%3Cpath d='M3 0h1v12H3zM2 2h1v1H2zM1 1h1v1H1zM4 2h1v1H4zM5 1h1v1H5zM2 4h1v1H2zM1 3h1v1H1zM4 4h1v1H4zM5 3h1v1H5zM2 6h1v1H2zM1 5h1v1H1zM4 6h1v1H4zM5 5h1v1H5zM2 8h1v1H2zM1 7h1v1H1zM4 8h1v1H4zM5 7h1v1H5z'/%3E%3C/svg%3E") center / contain no-repeat;
-          mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 7 12' shape-rendering='crispEdges'%3E%3Cpath d='M3 0h1v12H3zM2 2h1v1H2zM1 1h1v1H1zM4 2h1v1H4zM5 1h1v1H5zM2 4h1v1H2zM1 3h1v1H1zM4 4h1v1H4zM5 3h1v1H5zM2 6h1v1H2zM1 5h1v1H1zM4 6h1v1H4zM5 5h1v1H5zM2 8h1v1H2zM1 7h1v1H1zM4 8h1v1H4zM5 7h1v1H5z'/%3E%3C/svg%3E") center / contain no-repeat;
-  filter: drop-shadow(4px 4px 0 rgba(12, 6, 24, 0.55));
+/* Marginalia, the way a printed quadrangle carries its own reading: north
+   arrow, bar scale, source line. */
+.title-marginalia {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  color: var(--ink-soft);
 }
-.orn-r { transform: scaleX(-1); }
+.compass { width: 32px; height: 40px; color: var(--ink); fill: currentColor; }
+.compass text { font-family: var(--f-label); fill: currentColor; }
+
+.scale { width: 120px; }
+.scale-bar { display: flex; height: 8px; border: 1.5px solid var(--ink); }
+.scale-bar span { flex: 1; background: var(--paper); }
+.scale-bar span:nth-child(even) { background: var(--ink); }
+.scale-labels {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 3px;
+  font: 400 9px/1 var(--f-label);
+}
+
+.series-line {
+  margin: 0;
+  max-width: 20ch;
+  font-family: var(--f-body);
+  font-size: 13px;
+  font-style: italic;
+  line-height: 1.4;
+}
 
 /* --- Layout ---------------------------------------------------------------- */
 main {
@@ -214,9 +177,9 @@ main {
 .boot-error {
   margin: 0 0 24px;
   padding: 12px 16px;
-  background: #3a1628;
-  color: var(--parchment);
-  box-shadow: inset 0 0 0 2px var(--rose);
+  background: var(--paper-2);
+  color: var(--ink);
+  box-shadow: inset 0 0 0 2px var(--declination);
 }
 
 /* --- Stats ----------------------------------------------------------------- */
@@ -234,23 +197,19 @@ main {
   align-items: center;
   gap: 4px;
   padding: 16px 8px 12px;
-  background: var(--dusk);
-  box-shadow: inset 0 -4px 0 0 var(--dusk-2);
+  background: var(--paper-2);
+  box-shadow: inset 0 -3px 0 0 var(--rule);
 }
 .stats strong {
-  /* Digits come from Silkscreen via the display stack, at 40px - five times
-     its 8px design grid, so every pixel lands whole. Regular weight: the bold
-     4 fills in and reads as a flag. The comma is Pixelify's, which unlike
-     Silkscreen's does not look like a full stop. */
   font: 400 40px/1 var(--f-display);
-  color: var(--sun);
-  text-shadow: 3px 3px 0 var(--rose-deep);
+  color: var(--contour);
+  text-shadow: 2px 2px 0 rgba(35, 36, 31, 0.18);
 }
 .stats span {
   font: 400 8px/1.4 var(--f-label);
   letter-spacing: 0.2em;
   text-transform: uppercase;
-  color: var(--lilac);
+  color: var(--ink-soft);
 }
 
 /* --- Section heads --------------------------------------------------------- */
@@ -267,14 +226,14 @@ main {
   align-items: baseline;
   gap: 12px;
   font: 700 32px/1 var(--f-display);
-  color: var(--parchment);
+  color: var(--ink);
 }
 .plate-no {
   font: 400 8px/1 var(--f-label);
   letter-spacing: 0.25em;
   text-transform: uppercase;
-  color: var(--night);
-  background: var(--amber);
+  color: var(--paper);
+  background: var(--contour);
   padding: 4px 6px 3px;
   transform: translateY(-6px);
 }
@@ -283,10 +242,11 @@ main {
   max-width: 60ch;
   justify-self: end;
   text-align: right;
+  font-family: var(--f-body);
   font-size: 17px;
   line-height: 1.5;
   letter-spacing: 0.01em;
-  color: var(--lilac);
+  color: var(--ink-soft);
 }
 
 /* --- The plate: map on a parchment mat, with atlas rulers ------------------ */
@@ -304,22 +264,16 @@ main {
   max-width: 100%;
   margin: 0 auto;
   padding: 8px 16px 16px 8px;
-  background: var(--parchment);
+  background: var(--paper-2);
   color: var(--ink);
   scroll-margin-top: 16px;
-  box-shadow:
-    0 -4px 0 0 var(--ink),
-    0 4px 0 0 var(--ink),
-    -4px 0 0 0 var(--ink),
-    4px 0 0 0 var(--ink),
-    12px 16px 0 0 rgba(8, 4, 18, 0.6);
 }
 
 .ruler-corner {
   grid-area: 1 / 1;
   display: grid;
   place-items: center;
-  color: var(--rose-deep);
+  color: var(--declination);
 }
 
 .ruler { position: relative; font: 700 16px/1 var(--f-label); color: var(--soil); }
@@ -353,7 +307,7 @@ main {
 .stage-wrap {
   grid-area: 2 / 2;
   position: relative;
-  background: #2a2150;
+  background: #4a616b;
   box-shadow: 0 0 0 4px var(--ink);
 }
 
@@ -366,7 +320,7 @@ canvas#stage {
   outline: none;
   touch-action: manipulation;
 }
-canvas#stage:focus-visible { outline: 3px solid var(--sun); outline-offset: -3px; }
+canvas#stage:focus-visible { outline: 3px solid var(--declination); outline-offset: -3px; }
 
 /* --- HUD: what the pointer is over ----------------------------------------- */
 .hud {
@@ -380,20 +334,20 @@ canvas#stage:focus-visible { outline: 3px solid var(--sun); outline-offset: -3px
   align-items: center;
   gap: 4px 10px;
   padding: 6px 10px;
-  background: rgba(28, 21, 48, 0.86);
-  box-shadow: inset 0 0 0 2px var(--violet);
+  background: rgba(237, 231, 214, 0.92);
+  box-shadow: inset 0 0 0 2px var(--water);
   font-size: 16px;
   pointer-events: none;
 }
-.hud-hint { font: 400 8px/1.6 var(--f-label); letter-spacing: 0.12em; color: var(--lilac); text-transform: uppercase; }
+.hud-hint { font: 400 8px/1.6 var(--f-label); letter-spacing: 0.12em; color: var(--ink-soft); text-transform: uppercase; }
 .hud-ref {
   font: 700 16px/1 var(--f-label);
   padding: 2px 4px 1px;
-  background: var(--sun);
-  color: var(--ink);
+  background: var(--contour);
+  color: var(--paper);
 }
-.hud-name { color: var(--parchment); font-weight: 700; }
-.hud-hq { color: var(--lilac); }
+.hud-name { color: var(--ink); font-weight: 700; }
+.hud-hq { color: var(--ink-soft); }
 
 /* --- Signpost (top-right) -------------------------------------------------- */
 .signpost {
@@ -410,16 +364,17 @@ canvas#stage:focus-visible { outline: 3px solid var(--sun); outline-offset: -3px
 .sign {
   position: relative;
   padding: 14px 16px 16px;
-  background: var(--parchment);
+  background: var(--paper-2);
   color: var(--ink);
-  box-shadow:
-    0 -4px 0 0 var(--ink),
-    0 4px 0 0 var(--ink),
-    -4px 0 0 0 var(--ink),
-    4px 0 0 0 var(--ink),
-    inset 0 6px 0 0 var(--district),
-    8px 10px 0 0 rgba(8, 4, 18, 0.55);
   animation: sign-in 180ms steps(3) both;
+}
+/* The district's colour, as a tab across the top of the card. */
+.sign::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 6px;
+  background: var(--district);
 }
 /* Movement only, never opacity: if the animation is ever interrupted or
    frozen, the card must still be fully readable. */
@@ -436,12 +391,12 @@ canvas#stage:focus-visible { outline: 3px solid var(--sun); outline-offset: -3px
   height: 24px;
   padding: 0;
   font: 700 16px/1 var(--f-label);
-  color: var(--parchment);
+  color: var(--paper);
   background: var(--ink);
   border: 0;
   cursor: pointer;
 }
-.sign-close:hover { background: var(--rose-deep); }
+.sign-close:hover { background: var(--declination); }
 
 .sign-eyebrow {
   display: flex;
@@ -454,7 +409,7 @@ canvas#stage:focus-visible { outline: 3px solid var(--sun); outline-offset: -3px
   color: var(--soil);
 }
 .sign-chip { width: 8px; height: 8px; background: var(--district); box-shadow: 0 0 0 2px var(--ink); }
-.sign-ref { margin-left: auto; padding: 2px 4px 1px; font: 700 16px/1 var(--f-label); background: var(--ink); color: var(--sun); letter-spacing: 0; }
+.sign-ref { margin-left: auto; padding: 2px 4px 1px; font: 700 16px/1 var(--f-label); background: var(--ink); color: var(--paper); letter-spacing: 0; }
 
 .sign-name { margin: 0 32px 8px 0; font: 700 24px/1.1 var(--f-display); color: var(--ink); }
 
@@ -463,22 +418,24 @@ canvas#stage:focus-visible { outline: 3px solid var(--sun); outline-offset: -3px
   grid-template-columns: auto 1fr;
   gap: 4px 12px;
   margin: 0 0 10px;
+  font-family: var(--f-body);
   font-size: 17px;
   line-height: 1.5;
   letter-spacing: 0.01em;
 }
-.sign-facts dt { color: #6a5028; font-size: 15px; }
+.sign-facts dt { color: var(--soil); font-size: 15px; }
 .sign-facts dd { margin: 0; }
-.muted { color: #6a5028; }
+.muted { color: var(--soil); }
 
 .sign-shared {
   margin: 0 0 12px;
   padding-top: 8px;
+  font-family: var(--f-body);
   font-size: 15px;
   line-height: 1.6;
   letter-spacing: 0.01em;
-  color: #6a5028;
-  border-top: 2px dashed var(--parchment-2);
+  color: var(--soil);
+  border-top: 2px dashed var(--rule);
 }
 
 .sign-link {
@@ -488,11 +445,11 @@ canvas#stage:focus-visible { outline: 3px solid var(--sun); outline-offset: -3px
   letter-spacing: 0.14em;
   text-transform: uppercase;
   text-decoration: none;
-  color: var(--parchment);
+  color: var(--paper);
   background: var(--ink);
   box-shadow: 0 3px 0 0 var(--soil);
 }
-.sign-link:hover { background: var(--rose-deep); }
+.sign-link:hover { background: var(--declination); }
 
 /* --- Controls -------------------------------------------------------------- */
 .controls {
@@ -503,8 +460,8 @@ canvas#stage:focus-visible { outline: 3px solid var(--sun); outline-offset: -3px
   gap: 16px 24px;
   margin-top: 32px;
   padding: 16px 20px;
-  background: var(--dusk);
-  box-shadow: inset 0 -4px 0 0 var(--dusk-2);
+  background: var(--paper-2);
+  box-shadow: inset 0 -3px 0 0 var(--rule);
 }
 
 .modes { grid-area: modes; display: flex; gap: 8px; }
@@ -512,21 +469,21 @@ canvas#stage:focus-visible { outline: 3px solid var(--sun); outline-offset: -3px
   display: inline-flex;
   align-items: center;
   font: 400 16px/1 var(--f-label);
-  color: var(--parchment);
-  background: var(--dusk-2);
+  color: var(--ink);
+  background: var(--paper);
   border: 0;
   padding: 10px 12px 8px;
   cursor: pointer;
-  box-shadow: inset 0 0 0 2px var(--violet), 0 4px 0 0 #120d20;
+  box-shadow: inset 0 0 0 2px var(--water), 0 3px 0 0 var(--rule);
 }
-.modes button:hover { background: var(--violet); }
-.modes button:active { transform: translateY(4px); box-shadow: inset 0 0 0 2px var(--violet); }
+.modes button:hover { background: rgba(111, 143, 160, 0.16); }
+.modes button:active { transform: translateY(3px); box-shadow: inset 0 0 0 2px var(--water); }
 .modes button[aria-checked='true'] {
-  color: var(--ink);
-  background: var(--sun);
-  box-shadow: inset 0 0 0 2px var(--ink), 0 4px 0 0 var(--amber);
+  color: var(--paper);
+  background: var(--contour);
+  box-shadow: inset 0 0 0 2px var(--ink), 0 3px 0 0 var(--soil);
 }
-.modes button[aria-checked='true'] kbd { background: var(--ink); color: var(--sun); box-shadow: none; }
+.modes button[aria-checked='true'] kbd { background: var(--paper); color: var(--contour); box-shadow: none; }
 
 .legend {
   grid-area: legend;
@@ -536,12 +493,13 @@ canvas#stage:focus-visible { outline: 3px solid var(--sun); outline-offset: -3px
   display: flex;
   flex-wrap: wrap;
   gap: 6px 16px;
+  font-family: var(--f-body);
   font-size: 15px;
   line-height: 1.4;
-  color: var(--lilac);
+  color: var(--ink-soft);
 }
 .legend li { display: flex; align-items: center; gap: 6px; }
-.legend-swatch { width: 12px; height: 12px; box-shadow: 0 0 0 2px var(--night); }
+.legend-swatch { width: 12px; height: 12px; box-shadow: 0 0 0 2px var(--paper); }
 .legend-note { font-style: normal; }
 
 /* --- Gazetteer ------------------------------------------------------------- */
@@ -554,19 +512,19 @@ canvas#stage:focus-visible { outline: 3px solid var(--sun); outline-offset: -3px
   gap: 8px 16px;
   margin-bottom: 28px;
 }
-.search label { font: 700 16px/1 var(--f-label); color: var(--amber); }
+.search label { font: 700 16px/1 var(--f-label); color: var(--contour); }
 .search input {
   width: min(420px, 100%);
   padding: 10px 12px 8px;
-  font: 400 16px/1 var(--f-display);
+  font: 400 16px/1 var(--f-body);
   color: var(--ink);
-  background: var(--parchment);
+  background: var(--paper-2);
   border: 0;
-  box-shadow: inset 0 0 0 2px var(--ink), inset 4px 4px 0 0 var(--parchment-2);
+  box-shadow: inset 0 0 0 2px var(--ink);
 }
-.search input::placeholder { color: #9a8055; }
-.search input:focus-visible { outline: 3px solid var(--sun); outline-offset: 2px; }
-.search-status { margin: 0; font-size: 15px; color: var(--lilac); }
+.search input::placeholder { color: #9c8760; }
+.search input:focus-visible { outline: 3px solid var(--declination); outline-offset: 2px; }
+.search-status { margin: 0; font-family: var(--f-body); font-size: 15px; color: var(--ink-soft); }
 
 .banks {
   display: grid;
@@ -576,8 +534,8 @@ canvas#stage:focus-visible { outline: 3px solid var(--sun); outline-offset: -3px
 }
 
 .bank {
-  background: var(--dusk);
-  box-shadow: inset 0 -4px 0 0 var(--dusk-2);
+  background: var(--paper-2);
+  box-shadow: inset 0 -3px 0 0 var(--rule);
 }
 .bank[hidden] { display: none; }
 
@@ -588,29 +546,27 @@ canvas#stage:focus-visible { outline: 3px solid var(--sun); outline-offset: -3px
   gap: 12px;
   padding: 14px 16px 18px;
   background: var(--district);
-  color: var(--ink);
+  color: var(--paper);
 }
-/* Sawtooth edge under the district band - N and Z, stepped. */
+/* A hachured tick-mark edge under the district band, like a contour tick. */
 .bank-head::after {
   content: '';
   position: absolute;
   left: 0;
   right: 0;
-  bottom: -8px;
-  height: 8px;
-  background: var(--district);
-  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 4' shape-rendering='crispEdges'%3E%3Cpath d='M0 0h8v1H7v1H6v1H5v1H3V3H2V2H1V1H0z'/%3E%3C/svg%3E") 0 0 / 16px 8px repeat-x;
-          mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 4' shape-rendering='crispEdges'%3E%3Cpath d='M0 0h8v1H7v1H6v1H5v1H3V3H2V2H1V1H0z'/%3E%3C/svg%3E") 0 0 / 16px 8px repeat-x;
+  bottom: -6px;
+  height: 6px;
+  background: repeating-linear-gradient(90deg, var(--district) 0 6px, transparent 6px 14px);
 }
 .bank-chip { width: 12px; height: 12px; background: var(--ink); flex: none; }
 .bank-text { flex: 1; min-width: 0; }
 .bank-name { margin: 0; font: 700 16px/1.2 var(--f-label); letter-spacing: 0.06em; text-transform: uppercase; }
-.bank-meta { margin: 2px 0 0; font-size: 15px; color: var(--ink); }
+.bank-meta { margin: 2px 0 0; font-family: var(--f-body); font-size: 15px; color: var(--paper); opacity: 0.85; }
 .bank-count {
   font: 700 16px/1 var(--f-label);
   padding: 6px 8px 4px;
   background: var(--ink);
-  color: var(--parchment);
+  color: var(--paper);
 }
 
 .entries { list-style: none; margin: 0; padding: 20px 12px 12px; }
@@ -625,57 +581,47 @@ canvas#stage:focus-visible { outline: 3px solid var(--sun); outline-offset: -3px
   padding: 7px 8px 6px;
   font: inherit;
   text-align: left;
-  color: var(--parchment);
+  color: var(--ink);
   background: transparent;
   border: 0;
   cursor: pointer;
 }
-.entry:hover:not(:disabled) { background: var(--dusk-2); }
+.entry:hover:not(:disabled) { background: rgba(111, 143, 160, 0.14); }
 .entry:disabled { opacity: 0.4; cursor: default; }
-.entry.is-selected { background: #4a3a24; box-shadow: inset 0 0 0 2px var(--sun); }
+.entry.is-selected { background: rgba(178, 58, 46, 0.12); box-shadow: inset 0 0 0 2px var(--declination); }
 
-.entry-swatch { width: 12px; height: 12px; box-shadow: 0 0 0 2px var(--night); }
+.entry-swatch { width: 12px; height: 12px; box-shadow: 0 0 0 2px var(--paper-2); }
 .entry-main { min-width: 0; }
 .entry-line { display: flex; align-items: baseline; gap: 6px; }
-.entry-name { font-size: 16px; line-height: 1.25; }
+.entry-name { font-family: var(--f-body); font-size: 16px; line-height: 1.25; }
 .entry-leader {
   flex: 1;
   min-width: 12px;
   height: 2px;
   transform: translateY(-4px);
-  background: repeating-linear-gradient(90deg, var(--violet) 0 2px, transparent 2px 6px);
+  background: repeating-linear-gradient(90deg, var(--water) 0 2px, transparent 2px 6px);
 }
 /* Grid references use the same 16px lettering as the rulers they point to. */
-.entry-ref { font: 700 16px/1 var(--f-label); color: var(--sun); }
-.entry-hq { display: block; font-size: 15px; color: var(--lilac); }
+.entry-ref { font: 700 16px/1 var(--f-label); color: var(--contour); }
+.entry-hq { display: block; font-family: var(--f-body); font-size: 15px; color: var(--ink-soft); }
 
 /* --- Footer ---------------------------------------------------------------- */
 .foot {
   position: relative;
   margin-top: 32px;
-  padding: 48px 16px 40px;
-  background: #140f24;
-  color: var(--lilac);
-}
-/* A fence line along the top of the footer. */
-.foot::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: -12px;
-  height: 12px;
-  background:
-    linear-gradient(var(--dusk-2), var(--dusk-2)) 0 4px / 100% 2px repeat-x,
-    linear-gradient(90deg, var(--dusk-2) 0 4px, transparent 4px 24px) 0 0 / 24px 12px repeat-x;
+  padding: 40px 16px 40px;
+  background: var(--paper-2);
+  color: var(--ink-soft);
+  border-top: 2px solid var(--ink);
+  box-shadow: inset 0 3px 0 0 var(--paper);
 }
 .foot-inner {
   width: min(760px, 100%);
   margin: 0 auto;
   text-align: center;
 }
-.foot .emblem { color: var(--amber); margin-bottom: 12px; }
-.foot p { margin: 0 0 12px; font-size: 15px; line-height: 1.7; letter-spacing: 0.01em; }
+.foot .emblem { color: var(--contour); margin-bottom: 12px; }
+.foot p { margin: 0 0 12px; font-family: var(--f-body); font-size: 15px; line-height: 1.7; letter-spacing: 0.01em; }
 .foot-small { font: 400 8px/1.6 var(--f-label) !important; letter-spacing: 0.14em; text-transform: uppercase; opacity: 0.7; }
 
 /* --- Narrow screens -------------------------------------------------------- */
@@ -690,10 +636,11 @@ canvas#stage:focus-visible { outline: 3px solid var(--sun); outline-offset: -3px
 }
 
 @media (max-width: 640px) {
-  h1 { font-size: 36px; }
-  .cartouche { gap: 8px; margin-top: -72px; }
-  .cartouche .eyebrow { font-size: 8px; }
-  .orn { width: 14px; height: 24px; }
+  h1 { font-size: 28px; }
+  .title-block { padding: 16px 20px; }
+  /* Decorative marginalia only - the map itself is the content, and there
+     isn't room for both on a phone. */
+  .title-marginalia { display: none; }
   .stats { grid-template-columns: repeat(2, 1fr); }
   .stats strong { font-size: 24px; }
   .plate { --ruler-w: 20px; --ruler-h: 16px; padding: 6px 10px 10px 6px; }

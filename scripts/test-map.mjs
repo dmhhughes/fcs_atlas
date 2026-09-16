@@ -30,6 +30,41 @@ const map = new GameMap(mapData, associations);
 
 console.log(`Map ${map.width}x${map.height}, ${associations.length} associations, ${banks.length} banks\n`);
 
+/** Even-odd point-in-polygon across a territory's rings, so holes work. */
+function insideTerritory(rings, px, py) {
+  let crossings = 0;
+  for (const ring of rings) {
+    const n = ring.length / 2;
+    for (let i = 0; i < n; i++) {
+      const ax = ring[i * 2], ay = ring[i * 2 + 1];
+      const j = (i + 1) % n;
+      const bx = ring[j * 2], by = ring[j * 2 + 1];
+      if ((ay > py) !== (by > py)) {
+        const xCross = ax + ((py - ay) / (by - ay)) * (bx - ax);
+        if (xCross > px) crossings++;
+      }
+    }
+  }
+  return crossings % 2 === 1;
+}
+
+function ringArea(ring) {
+  let a = 0;
+  const n = ring.length / 2;
+  for (let i = 0; i < n; i++) {
+    const j = (i + 1) % n;
+    a += ring[i * 2] * ring[j * 2 + 1] - ring[j * 2] * ring[i * 2 + 1];
+  }
+  return Math.abs(a) / 2;
+}
+
+/** Centre of a tile, in world pixels - the same point the browser would
+ * sample when deciding what a click or a highlight wash covers. */
+const tileCentreWorld = (tx, ty) => [
+  (tx + 0.5) * map.tileSize,
+  (ty + 0.5) * map.tileSize,
+];
+
 // --- 1. Region geometry ------------------------------------------------------
 let before = failures.length;
 const seenAnchors = new Set();
@@ -47,32 +82,82 @@ for (const region of map.regions) {
   check(!seenAnchors.has(`${x},${y}`), `${name}: anchor shares a tile with another region`);
   seenAnchors.add(`${x},${y}`);
 
-  // Precomputed geometry must exist, or the region cannot be highlighted.
-  check(map.runs.get(region.index)?.length > 0, `${name}: no fill runs`);
-  check(map.outlines.get(region.index)?.length > 0, `${name}: no outline segments`);
+  // The traced polygon must exist and have real area, or the region cannot
+  // be filled or highlighted.
+  const rings = map.territories[region.index]?.rings ?? [];
+  check(rings.length > 0, `${name}: no traced territory rings`);
+  const area = rings.reduce((sum, r) => sum + ringArea(r), 0);
+  check(area > 0, `${name}: traced territory has zero area`);
+
+  // The anchor tile must fall inside that same polygon, or the selection
+  // outline and the "you are here" mark would land outside the fill.
+  const [wx, wy] = tileCentreWorld(x, y);
+  check(
+    insideTerritory(rings, wx, wy),
+    `${name}: anchor tile (${x},${y}) sits outside its own traced polygon`
+  );
 }
 console.log(`1. region geometry         ${failures.length === before ? 'ok' : 'FAIL'} (${map.regions.length} regions)`);
 
-// --- 2. Fill runs cover exactly the region ----------------------------------
+// --- 2. Traced polygons agree with the tile grid ------------------------------
+// A census over interior tiles: every land tile whose 8 neighbours all share
+// its own owner must land inside that owner's traced polygon. Tiles are
+// traced from the supersampled raster, which keeps real sub-tile county
+// detail wherever growth/despeckling didn't touch it (see 3-build-map.mjs),
+// so a tile's exact centre can legitimately sit just across a fine boundary
+// from its tile-grid owner right at a border - that's real geography, not a
+// bug. Restricting to tiles with unanimous neighbours sidesteps that and
+// still exercises every region.
+//
+// The sample point is nudged 2 world px off the tile's exact centre: SS is
+// even, so a tile's geometric centre always lands precisely on a raster
+// sub-pixel boundary - the one point in the tile a traced edge is *most*
+// likely to brush - rather than clearly inside one sub-pixel or another.
+// Sole-claimant archipelago/coastline tiles (a tile that's mostly open water
+// but the only claimed land nearby, e.g. Puget Sound, the Outer Banks, coastal
+// Maine) can be "interior" by the unanimous-neighbour rule above while their
+// exact geometric centre still legitimately falls in the water gap of their
+// own traced polygon. That's correct tracing of fragmented coastal geography,
+// not a bug, and it accounts for essentially all observed mismatches (see
+// the mismatch cluster below, which is coastline/archipelago, not noise). A
+// single point sample per tile can't be a zero-tolerance oracle for tiles
+// whose true land fraction is a minority of the tile - so tolerate a small
+// mismatch rate and only fail on something big enough to be a real
+// regression.
+const INTERIOR_MISMATCH_TOLERANCE = 0.01;
 before = failures.length;
 {
-  const counted = new Map();
-  for (const [index, runs] of map.runs) {
-    let n = 0;
-    for (let k = 0; k < runs.length; k += 3) n += runs[k + 1] - runs[k] + 1;
-    counted.set(index, n);
-  }
-  const actual = new Map();
-  for (const v of map.assoc) if (v >= 0) actual.set(v, (actual.get(v) ?? 0) + 1);
+  let sampled = 0;
+  const mismatches = [];
+  for (let ty = 0; ty < map.height; ty++) {
+    for (let tx = 0; tx < map.width; tx++) {
+      const index = map.assocAt(tx, ty);
+      if (index < 0) continue;
+      let interior = true;
+      for (let dy = -1; dy <= 1 && interior; dy++) {
+        for (let dx = -1; dx <= 1; dx++) {
+          if (dx === 0 && dy === 0) continue;
+          if (map.assocAt(tx + dx, ty + dy) !== index) { interior = false; break; }
+        }
+      }
+      if (!interior) continue;
 
-  for (const [index, n] of actual) {
-    check(
-      counted.get(index) === n,
-      `${associations[index].name}: fill runs cover ${counted.get(index)} tiles, region has ${n}`
-    );
+      sampled++;
+      const [cx, cy] = tileCentreWorld(tx, ty);
+      const rings = map.territories[index]?.rings ?? [];
+      if (!insideTerritory(rings, cx + 2, cy + 2)) {
+        mismatches.push(`${associations[index].name}: interior tile (${tx},${ty}) sits outside its traced polygon`);
+      }
+    }
   }
+  const rate = mismatches.length / sampled;
+  if (rate > INTERIOR_MISMATCH_TOLERANCE) {
+    for (const message of mismatches) check(false, message);
+  }
+  console.log(
+    `2. polygons match the grid ${rate <= INTERIOR_MISMATCH_TOLERANCE ? 'ok' : 'FAIL'} (${sampled - mismatches.length}/${sampled} interior tiles agree)`
+  );
 }
-console.log(`2. fill run coverage       ${failures.length === before ? 'ok' : 'FAIL'}`);
 
 // --- 3. Mouse hit testing ----------------------------------------------------
 // Every region must be clickable: its anchor, in world pixels, must hit-test

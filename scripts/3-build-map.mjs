@@ -14,6 +14,7 @@ import { join, dirname } from 'node:path';
 import { feature } from 'topojson-client';
 import { geoAlbersUsa, geoConicEqualArea, geoCentroid, geoGraticule, geoPath } from 'd3-geo';
 import { rasterizeGeometry, downsampleMajority, downsampleAny } from './lib/raster.mjs';
+import { traceMask, simplifyRing } from './lib/contour.mjs';
 import { encodePNG, gridToRGBA } from './lib/png.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
@@ -141,6 +142,10 @@ async function main() {
   const { grid: land } = downsampleAny(landRaster, RW, RH, SS);
   const W = TILES_W;
   const H = TILES_H;
+  // Snapshot the pure majority-vote result so the enclave/growth/despeckle
+  // passes below can be told apart from real county geometry later, when
+  // repainting the supersampled raster for contour tracing.
+  const majorityGrid = grid.slice();
 
   // --- Close holes in the land ---------------------------------------------
   // Some county-equivalents belong to no association: Virginia's 38 independent
@@ -334,6 +339,93 @@ async function main() {
     }
   }
 
+  // --- Repaint reassigned tiles into the supersampled raster -----------------
+  // Enclave-filling, growth and despeckling reassign ownership *after* county
+  // geometry was rasterised, so those tiles' original sub-tile detail no
+  // longer reflects who actually owns them. Repaint just those tiles solid at
+  // supersample resolution so traced contours agree with final ownership
+  // everywhere; untouched tiles keep their real county-level detail.
+  let repainted = 0;
+  for (let ty = 0; ty < H; ty++) {
+    for (let tx = 0; tx < W; tx++) {
+      const i = ty * W + tx;
+      if (grid[i] === majorityGrid[i]) continue;
+      repainted++;
+      for (let sy = ty * SS; sy < ty * SS + SS; sy++) {
+        for (let sx = tx * SS; sx < tx * SS + SS; sx++) raster[sy * RW + sx] = grid[i];
+      }
+    }
+  }
+  console.log(`  repainted ${repainted} reassigned tile(s) into the supersampled raster`);
+
+  // --- Trace territory and district contours ----------------------------------
+  // Traced from the supersampled raster (RW x RH), not the coarse tile grid,
+  // so boundaries keep real county-level detail instead of tile stairsteps.
+  // Coordinates come back on the half-integer lattice, offset -0.5 from this
+  // raster's own pixel-square convention (see contour.mjs); +0.5 corrects
+  // that before scaling into world pixels.
+  const EPSILON = 1.5; // Douglas-Peucker tolerance, in supersampled-raster units
+  const toWorld = TILE_SIZE / SS;
+
+  const districtNames = [...new Set(associations.map((a) => a.district))];
+  const districtIndex = new Map(districtNames.map((d, i) => [d, i + 1]));
+  const districtOfAssoc = new Array(associations.length + 1).fill(0);
+  for (const [i, a] of associations.entries()) districtOfAssoc[i + 1] = districtIndex.get(a.district);
+
+  // Per-id bounding boxes (in raster pixels) so tracing a small territory
+  // doesn't scan the whole RW x RH grid, plus a district-labelled raster
+  // built in the same pass.
+  const assocBBox = new Array(associations.length + 1).fill(null);
+  const districtBBox = new Array(districtNames.length + 1).fill(null);
+  const districtRaster = new Uint16Array(RW * RH);
+  const growBBox = (boxes, id, x, y) => {
+    const b = boxes[id];
+    if (!b) boxes[id] = { x0: x, y0: y, x1: x, y1: y };
+    else {
+      if (x < b.x0) b.x0 = x; if (x > b.x1) b.x1 = x;
+      if (y < b.y0) b.y0 = y; if (y > b.y1) b.y1 = y;
+    }
+  };
+  for (let y = 0; y < RH; y++) {
+    for (let x = 0; x < RW; x++) {
+      const id = raster[y * RW + x];
+      if (!id) continue;
+      growBBox(assocBBox, id, x, y);
+      const d = districtOfAssoc[id];
+      districtRaster[y * RW + x] = d;
+      growBBox(districtBBox, d, x, y);
+    }
+  }
+
+  const toWorldRings = (rawRings) =>
+    rawRings.map((ring) => {
+      const simplified = simplifyRing(ring, EPSILON);
+      const out = new Array(simplified.length);
+      for (let i = 0; i < simplified.length; i++) out[i] = Math.round((simplified[i] + 0.5) * toWorld);
+      return out;
+    });
+
+  const territories = associations.map((a, i) => {
+    const id = i + 1;
+    const bbox = assocBBox[id];
+    if (!bbox) return { rings: [] };
+    const rawRings = traceMask((x, y) => raster[y * RW + x] === id, RW, RH, bbox);
+    return { rings: toWorldRings(rawRings) };
+  });
+
+  const districts = {};
+  for (const name of districtNames) {
+    const id = districtIndex.get(name);
+    const bbox = districtBBox[id];
+    districts[name] = bbox
+      ? { rings: toWorldRings(traceMask((x, y) => districtRaster[y * RW + x] === id, RW, RH, bbox)) }
+      : { rings: [] };
+  }
+  console.log(
+    `  traced ${territories.filter((t) => t.rings.length).length}/${associations.length} territory contours, ` +
+      `${districtNames.length} district contours`
+  );
+
   // --- Region stats and signposts -------------------------------------------
   counts = tileCount();
   const regions = [];
@@ -396,6 +488,8 @@ async function main() {
       assoc: [...assoc],
       regions,
       graticule: graticule.filter((l) => l.length >= 4),
+      territories,
+      districts,
     })
   );
 

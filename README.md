@@ -1,9 +1,9 @@
 # Farm Credit Territory Atlas
 
-An interactive, pixel-art atlas of every Farm Credit lending association in the
-United States. The whole map is on screen at once: hover or click a territory to
-see who serves it, or travel between neighbouring territories with the arrow
-keys.
+An interactive survey-chart atlas of every Farm Credit lending association in
+the United States. The whole map is on screen at once: hover or click a
+territory to see who serves it, or travel between neighbouring territories
+with the arrow keys.
 
 **Live:** <https://dmhhughes.github.io/fcs_atlas/>
 
@@ -37,28 +37,33 @@ district bank that funds them. Each carries the atlas grid square (`A`–`P` by
 
 ## Design
 
-The page is set at **golden hour**: half past four on an autumn afternoon, sun
-low in the west.
+The page reads as **a printed quadrangle sheet**: paper and ink, flat
+hypsometric tints, no directional light.
 
-- **Light has a direction.** Coastlines facing north and west catch a gold
-  highlight and those facing south and east fall into shadow, so the land reads
-  as raised relief lit from the setting sun.
-- **Sea like a 16-bit overworld.** Distance-to-coast is precomputed and the sea
-  is drawn in bands (surf, shallows, deep), with real 5° lines of latitude and
-  longitude dotted over open water and sparse amber glints.
-- **An atlas plate.** The map sits on a parchment mat with lettered and
-  numbered rulers; the directory below is a gazetteer that refers back to them.
-- **Palette:** violet sea, soft golden-angle hues for the territories, parchment
-  panels, rose and sun-gold accents. Selection is a sun-gold line over a dark
-  backing, which stays legible on every territory colour.
-- **Type:** Pixelify Sans for display and reading text, Silkscreen for labels
-  and grid references. Both are self-hosted in `assets/fonts/`.
+- **Flat, not lit.** Coastlines are a single ink hairline - no raking light, no
+  relief shading. A survey chart doesn't have a sun in it.
+- **Sea as a chart tint.** A single flat tint, with real 5° lines of latitude
+  and longitude dotted over open water.
+- **Territories are traced, not rasterised.** Each association's and each
+  district bank's boundary is marching-squares-traced from the build
+  pipeline's tile-resolution raster, then Douglas-Peucker simplified to
+  straight edges - no curve smoothing, so real sharp corners (state lines)
+  stay sharp. Every territory strokes its own boundary independently; that
+  ink is opaque rather than translucent so two neighbours' hairlines along a
+  shared border don't show through as a faint double line.
+- **An atlas plate.** The map sits on a paper mat with lettered and numbered
+  rulers, inside a double neat-line border like a printed sheet's frame; the
+  directory below is a gazetteer that refers back to them.
+- **Palette:** slate-blue sea, muted earth-and-vegetation hues for the
+  territories held to a narrow hypsometric arc, paper panels, one saturated
+  accent (a declination red) reserved for hover, selection and the ping.
+- **Type:** Fraunces for display type, Vollkorn for reading text, JetBrains
+  Mono for labels and grid references. All three are self-hosted in
+  `assets/fonts/`.
 - **Emblem:** an 8×8 sprout over a ploughed field, drawn as SVG for the title
-  plate and the favicon.
-- **Header:** a sunset farm scene rendered at true low resolution (one scene
-  pixel is four CSS pixels) with an ordered-dither sky. Only the birds, stars
-  and windmill animate, at 8 fps, and only while visible and when motion is
-  allowed.
+  block and the favicon.
+- **Header:** a static title block carrying the sheet's own marginalia - a
+  north arrow, a bar scale, a source line - rather than an illustration.
 
 ## Pipeline
 
@@ -66,7 +71,7 @@ low in the west.
 |---|---|---|
 | 1 | `1-fetch-fca.mjs` | Scrapes the FCA public directory: roster, 55 association pages, 55 territory PNGs, and the 4 funding banks. Everything is cached in `data/raw/`. |
 | 2 | `2-parse-territories.mjs` | Turns territory descriptions into county FIPS sets, resolves overlaps, writes `data/associations.json`. |
-| 3 | `3-build-map.mjs` | Projects counties, rasterises at 4× and majority-votes down to a 200×125 tile grid; closes enclaves; writes `data/map.json` (tiles, regions, graticule) and `data/directory.web.json` (associations, banks, stats). |
+| 3 | `3-build-map.mjs` | Projects counties, rasterises at 4× and majority-votes down to a 200×125 tile grid; closes enclaves; traces each association's and district bank's boundary from the raster into simplified vector polygons; writes `data/map.json` (tiles, regions, graticule, traced territories and districts) and `data/directory.web.json` (associations, banks, stats). |
 
 ```
 npm test          # geometry, hit testing, keyboard reachability, grouping, no-scroll invariants, parse regressions
@@ -80,11 +85,10 @@ npm run coverage  # render any land that no association claims
 |---|---|
 | `index.html`, `styles.css` | The page |
 | `src/main.js` | Layout, input, selection, gazetteer, search |
-| `src/map.js` | Region geometry, hit testing, the golden-hour base renderer |
+| `src/map.js` | Region geometry, hit testing, the survey-sheet base renderer |
 | `src/render.js` | One frame from state; shared by the page and `npm run preview` |
 | `src/navigate.js` | Spatial arrow-key navigation between territories |
 | `src/signpost.js` | The details card |
-| `src/scene.js` | The header sunset |
 | `src/emblem.js` | The 8×8 emblem and favicon |
 | `src/tiles.js` | Palette |
 
@@ -185,8 +189,8 @@ committed.
 Association data: the [FCA public institution
 directory](https://apps.fca.gov/FCSPublicDirectory/), a U.S. government work.
 County boundaries: [`us-atlas`](https://github.com/topojson/us-atlas) (ISC),
-from U.S. Census cartographic boundary files. Type: Pixelify Sans and
-Silkscreen, self-hosted under the SIL Open Font License 1.1
+from U.S. Census cartographic boundary files. Type: Fraunces, Vollkorn and
+JetBrains Mono, self-hosted under the SIL Open Font License 1.1
 (`assets/fonts/OFL.txt`).
 
 This is an independent project, not affiliated with or endorsed by the Farm

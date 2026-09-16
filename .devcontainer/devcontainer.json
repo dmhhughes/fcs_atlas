@@ -12,9 +12,9 @@
 
 	// Pass local git, GitHub CLI, and Claude Code credentials to the container
 	"mounts": [
-    "source=${localEnv:USERPROFILE}/.gitconfig,target=/node/.gitconfig,type=bind,consistency=cached",
-    "source=${localEnv:USERPROFILE}/.config/gh,target=/node/.config/gh,type=bind,consistency=cached",
-	  "source=${localEnv:USERPROFILE}/.claude,target=/node/.claude,type=bind,consistency=cached"
+    "source=${localEnv:USERPROFILE}/.gitconfig,target=/home/node/.gitconfig,type=bind,consistency=cached",
+    "source=${localEnv:USERPROFILE}/.config/gh,target=/home/node/.config/gh,type=bind,consistency=cached",
+	  "source=${localEnv:USERPROFILE}/.claude,target=/home/node/.claude,type=bind,consistency=cached"
     ],
 
   "postCreateCommand": "npm ci",

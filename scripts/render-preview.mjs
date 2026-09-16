@@ -21,8 +21,12 @@ const DATA = join(HERE, '..', 'data');
 const OUT = join(DATA, 'reports');
 
 // --- Minimal Canvas2D -------------------------------------------------------
-// The renderer uses fillStyle, fillRect, globalAlpha and the save/translate/
-// restore stack, so that is all this implements.
+// The renderer uses fillStyle, fillRect, globalAlpha, the save/translate/
+// restore stack, and (since the map became traced vector territories) path
+// building (straight edges only - no curves) and filling/stroking, so that is
+// what this implements. Polygon fills and strokes are rasterised by hand
+// rather than delegated to a library, to keep the "no native deps, preview
+// matches the browser" guarantee intact.
 class Ctx2D {
   /**
    * @param {number} width   canvas size in device pixels
@@ -35,15 +39,28 @@ class Ctx2D {
     this.s = scale;
     this.data = new Uint8Array(width * height * 4);
     this.fillStyle = '#000';
+    this.strokeStyle = '#000';
+    this.lineWidth = 1;
     this.globalAlpha = 1;
     this.tx = 0;
     this.ty = 0;
     this.stack = [];
+    this.path = []; // subpaths: { pts: [x,y,...] in world+translate space, closed }
+    this.cur = null;
   }
 
   save() { this.stack.push([this.tx, this.ty]); }
   restore() { [this.tx, this.ty] = this.stack.pop() ?? [0, 0]; }
   translate(x, y) { this.tx += x; this.ty += y; }
+
+  #blend(px, py, r, g, b, a) {
+    if (px < 0 || py < 0 || px >= this.width || py >= this.height || a <= 0) return;
+    const i = (py * this.width + px) * 4;
+    this.data[i] = Math.round(this.data[i] * (1 - a) + r * a);
+    this.data[i + 1] = Math.round(this.data[i + 1] * (1 - a) + g * a);
+    this.data[i + 2] = Math.round(this.data[i + 2] * (1 - a) + b * a);
+    this.data[i + 3] = 255;
+  }
 
   fillRect(x, y, w, h) {
     const [r, g, b, a0] = parseColor(this.fillStyle);
@@ -56,14 +73,115 @@ class Ctx2D {
     const y1 = Math.min(this.height, Math.max(y0 + (h > 0 ? 1 : 0), Math.round((y + this.ty + h) * s)));
 
     for (let py = y0; py < y1; py++) {
-      for (let px = x0; px < x1; px++) {
-        const i = (py * this.width + px) * 4;
-        this.data[i] = Math.round(this.data[i] * (1 - a) + r * a);
-        this.data[i + 1] = Math.round(this.data[i + 1] * (1 - a) + g * a);
-        this.data[i + 2] = Math.round(this.data[i + 2] * (1 - a) + b * a);
-        this.data[i + 3] = 255;
+      for (let px = x0; px < x1; px++) this.#blend(px, py, r, g, b, a);
+    }
+  }
+
+  // --- Path building -----------------------------------------------------
+  // Points are stored in world+translate space (matching fillRect's (x+tx)),
+  // and only scaled to device pixels at fill()/stroke() time.
+
+  beginPath() { this.path = []; this.cur = null; }
+
+  moveTo(x, y) {
+    this.cur = { pts: [x + this.tx, y + this.ty], closed: false };
+    this.path.push(this.cur);
+  }
+
+  lineTo(x, y) {
+    if (!this.cur) return this.moveTo(x, y);
+    this.cur.pts.push(x + this.tx, y + this.ty);
+  }
+
+  closePath() { if (this.cur) this.cur.closed = true; }
+
+  // --- Fill / stroke -------------------------------------------------------
+
+  /** Even-odd (or nonzero - our shapes never need the distinction) scanline
+   * fill of a set of device-space rings, mirroring lib/raster.mjs's
+   * fillPolygon so the two hand-written rasterisers agree with each other. */
+  #scanFill(rings, r, g, b, a) {
+    let yMin = Infinity;
+    let yMax = -Infinity;
+    for (const ring of rings) {
+      for (let i = 1; i < ring.length; i += 2) {
+        if (ring[i] < yMin) yMin = ring[i];
+        if (ring[i] > yMax) yMax = ring[i];
       }
     }
+    if (!Number.isFinite(yMin)) return;
+    const y0 = Math.max(0, Math.floor(yMin));
+    const y1 = Math.min(this.height - 1, Math.ceil(yMax));
+    const xs = [];
+
+    for (let py = y0; py <= y1; py++) {
+      const scan = py + 0.5;
+      xs.length = 0;
+      for (const ring of rings) {
+        const n = ring.length / 2;
+        for (let i = 0; i < n; i++) {
+          const ax = ring[i * 2], ay = ring[i * 2 + 1];
+          const j = (i + 1) % n;
+          const bx = ring[j * 2], by = ring[j * 2 + 1];
+          if (ay === by) continue;
+          if (scan >= Math.min(ay, by) && scan < Math.max(ay, by)) {
+            xs.push(ax + ((scan - ay) / (by - ay)) * (bx - ax));
+          }
+        }
+      }
+      if (xs.length < 2) continue;
+      xs.sort((p, q) => p - q);
+      for (let i = 0; i + 1 < xs.length; i += 2) {
+        const from = Math.max(0, Math.ceil(xs[i] - 0.5));
+        const to = Math.min(this.width - 1, Math.floor(xs[i + 1] - 0.5));
+        for (let px = from; px <= to; px++) this.#blend(px, py, r, g, b, a);
+      }
+    }
+  }
+
+  fill() {
+    const [r, g, b, a0] = parseColor(this.fillStyle);
+    const a = a0 * this.globalAlpha;
+    if (a <= 0) return;
+    const rings = this.path.filter((p) => p.pts.length >= 6).map((p) => p.pts.map((v) => v * this.s));
+    this.#scanFill(rings, r, g, b, a);
+  }
+
+  /** Thick strokes are just filled quads, one per segment, projecting half a
+   * line-width past each endpoint so consecutive segments leave no gap. */
+  stroke() {
+    const [r, g, b, a0] = parseColor(this.strokeStyle);
+    const a = a0 * this.globalAlpha;
+    if (a <= 0) return;
+    const w = Math.max(1, this.lineWidth * this.s);
+    for (const sub of this.path) {
+      const pts = sub.pts.map((v) => v * this.s);
+      const n = pts.length / 2;
+      if (n < 2) continue;
+      const segments = sub.closed ? n : n - 1;
+      for (let i = 0; i < segments; i++) {
+        const j = (i + 1) % n;
+        this.#strokeSegment(pts[i * 2], pts[i * 2 + 1], pts[j * 2], pts[j * 2 + 1], w, r, g, b, a);
+      }
+    }
+  }
+
+  #strokeSegment(x0, y0, x1, y1, w, r, g, b, a) {
+    const dx = x1 - x0;
+    const dy = y1 - y0;
+    const len = Math.hypot(dx, dy);
+    if (len < 1e-6) return;
+    const nx = (-dy / len) * (w / 2);
+    const ny = (dx / len) * (w / 2);
+    const ex = (dx / len) * (w / 2);
+    const ey = (dy / len) * (w / 2);
+    const quad = [
+      x0 - ex + nx, y0 - ey + ny,
+      x1 + ex + nx, y1 + ey + ny,
+      x1 + ex - nx, y1 + ey - ny,
+      x0 - ex - nx, y0 - ey - ny,
+    ];
+    this.#scanFill([quad], r, g, b, a);
   }
 }
 
@@ -123,7 +241,7 @@ console.log(`fit ${fit.toFixed(3)} -> ${scale.toFixed(4)} (${tilePx}px tiles) on
 async function shot(name, state) {
   const ctx = new Ctx2D(CANVAS_W, CANVAS_H, scale);
   // The letterbox margin outside the world is deep sea, as in main.js.
-  ctx.fillStyle = '#2a2150';
+  ctx.fillStyle = '#4a616b';
   ctx.fillRect(0, 0, CANVAS_W / scale, CANVAS_H / scale);
   ctx.save();
   ctx.translate(originX / scale, originY / scale);
