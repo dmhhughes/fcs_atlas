@@ -44,7 +44,7 @@ The same commands work inside the dev container (`.devcontainer/`, Node 24, `npm
 - **Every tile is a whole number of backing pixels.** At a fractional scale, each tile row gets anti-aliased edges that don't composite back to opaque, and the sea shows through as horizontal seams across the map. `unit` is one backing pixel in world units, and every stroke width is a multiple of it. `layout()` has two paths: whole device pixels shown 1:1, or a small integer tile size resampled by CSS when rounding down would waste more than 15% of the width (phones).
 - **The atlas grid is tied to the world size.** `CELL = 200` world px gives 16×10 squares (A–P, 1–10). The rulers, the HUD, the signpost and the gazetteer grid references all depend on it.
 - **Arrow keys** move between irregular regions using the cone-scored nearest anchor (`navigate.js`). Test 4 asserts every region is reachable this way.
-- `#t=<uninum>` deep-links to a territory. The discovery log is in `localStorage` under `fcs-atlas:discovered`.
+- `#t=<uninum>` deep-links to a territory.
 
 ## Constraints
 

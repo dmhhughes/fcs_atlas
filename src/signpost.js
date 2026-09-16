@@ -25,9 +25,8 @@ export class Signpost {
    * @param {string} extra.gridRef   atlas square, e.g. "F7"
    * @param {string} extra.color     district colour
    * @param {object} extra.bank      the funding bank, if known
-   * @param {boolean} extra.isNew    first time this territory has been found
    */
-  show(a, { gridRef = '', color = '#b9a8d6', bank = null, isNew = false } = {}) {
+  show(a, { gridRef = '', color = '#b9a8d6', bank = null } = {}) {
     if (!a) return;
     this.currentUninum = a.uninum;
 
@@ -48,7 +47,6 @@ export class Signpost {
           ${gridRef ? `<span class="sign-ref" title="Atlas grid square">${esc(gridRef)}</span>` : ''}
         </p>
         <h2 class="sign-name">${esc(a.name)}</h2>
-        ${isNew ? '<p class="sign-new">&#9733; New discovery</p>' : ''}
         <dl class="sign-facts">
           <dt>Headquarters</dt>
           <dd>${esc(hq)}${a.hq.county ? ` <span class="muted">&middot; ${esc(a.hq.county)} Co.</span>` : ''}</dd>

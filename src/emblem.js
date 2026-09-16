@@ -1,7 +1,7 @@
 /**
  * The site emblem: a sprout rising over a ploughed field, on an 8x8 grid.
  * Mirror-symmetric, and drawn the same way everywhere it appears - the title
- * plate, the favicon, and the discovery stamps in the gazetteer.
+ * plate and the favicon.
  */
 
 export const EMBLEM = [

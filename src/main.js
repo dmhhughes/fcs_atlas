@@ -25,7 +25,6 @@ const MODE_KEYS = { 1: 'territory', 2: 'district' };
 const CELL = 200;
 const COLS = 'ABCDEFGHIJKLMNOP';
 
-const STORE = 'fcs-atlas:discovered';
 const DEEP_SEA = SEA_BANDS[SEA_BANDS.length - 1];
 const reducedMotion = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
 
@@ -68,7 +67,6 @@ async function boot() {
   let mode = 'territory';
   let ping = null;
   let pingFrame = 0;
-  let rolling = false;
   let baseDirty = true;
 
   // Layout state, all set by layout().
@@ -80,8 +78,6 @@ async function boot() {
   let originY = 0;
   let originDevX = 0; // device px
   let originDevY = 0;
-
-  const discovered = loadDiscovered();
 
   fillStats(stats, associations, banks);
   buildRulers();
@@ -211,7 +207,7 @@ async function boot() {
     if (i < 0) {
       const hint = document.createElement('span');
       hint.className = 'hud-hint';
-      hint.textContent = 'Hover a territory · arrows to travel · R to roll';
+      hint.textContent = 'Hover a territory · arrows to travel';
       hud.append(hint);
       return;
     }
@@ -231,7 +227,7 @@ async function boot() {
 
   // --- Selection -------------------------------------------------------------
   function setHovered(index) {
-    if (index === hovered || rolling) return;
+    if (index === hovered) return;
     hovered = index;
     canvas.style.cursor = index >= 0 ? 'pointer' : 'default';
     updateHud();
@@ -242,25 +238,19 @@ async function boot() {
     if (index == null || index < 0) return;
     selected = index;
     const a = associations[index];
-    const isNew = !discovered.has(a.uninum);
-    discovered.add(a.uninum);
-    saveDiscovered(discovered);
-
     signpost.show(a, {
       gridRef: gridRef(index),
       color: DISTRICT_COLORS[a.district] ?? DISTRICT_FALLBACK,
       bank: bankByDistrict.get(a.district),
-      isNew,
     });
     highlightListItem(a.uninum);
-    refreshLog();
     updateHud();
     startPing(index);
     render();
     // Keep the URL pointing at the chosen territory, so it can be shared.
     history.replaceState(null, '', `#t=${a.uninum}`);
     if (announceIt) {
-      announce(`${a.name}, ${a.hq.city}, ${a.hq.state}. Grid ${gridRef(index)}.${isNew ? ' New discovery.' : ''}`);
+      announce(`${a.name}, ${a.hq.city}, ${a.hq.state}. Grid ${gridRef(index)}.`);
     }
   }
 
@@ -272,41 +262,6 @@ async function boot() {
     updateHud();
     render();
   }
-
-  // --- Roll: a random territory, preferring ones not yet discovered ----------
-  const rollButton = document.getElementById('roll');
-
-  function roll() {
-    if (rolling) return;
-    const placed = [...anchors.keys()];
-    const fresh = placed.filter((i) => i !== selected && !discovered.has(associations[i].uninum));
-    const pool = fresh.length ? fresh : placed.filter((i) => i !== selected);
-    const target = pool[Math.floor(Math.random() * pool.length)];
-    if (target === undefined) return;
-
-    if (reducedMotion()) { setSelected(target); return; }
-
-    // A short shuffle across the map before landing, slowing as it goes.
-    rolling = true;
-    rollButton.classList.add('is-rolling');
-    let n = 0;
-    const FLASHES = 8;
-    const tick = () => {
-      if (n < FLASHES) {
-        hovered = placed[Math.floor(Math.random() * placed.length)];
-        render();
-        n++;
-        setTimeout(tick, 55 + n * 14);
-        return;
-      }
-      hovered = -1;
-      rolling = false;
-      rollButton.classList.remove('is-rolling');
-      setSelected(target);
-    };
-    tick();
-  }
-  rollButton.addEventListener('click', roll);
 
   // --- Pointer ---------------------------------------------------------------
   canvas.addEventListener('pointermove', (e) => {
@@ -334,7 +289,6 @@ async function boot() {
     if (e.metaKey || e.ctrlKey || e.altKey) return;
 
     if (e.key === 'Escape') { clearSelection(); return; }
-    if (e.key === 'r' || e.key === 'R') { e.preventDefault(); roll(); return; }
     if (MODE_KEYS[e.key]) { setMode(MODE_KEYS[e.key]); return; }
 
     const direction = KEY_DIRECTIONS[e.code];
@@ -385,43 +339,10 @@ async function boot() {
     }
   }
 
-  // --- Discovery log ---------------------------------------------------------
-  const logOrder = [];
-
-  function refreshLog() {
-    const count = [...discovered].filter((u) => indexByUninum.has(u)).length;
-    document.getElementById('log-count').textContent = String(count);
-    document.getElementById('log-total').textContent = String(associations.length);
-    const bar = document.getElementById('log-bar');
-    [...bar.children].forEach((cell, k) => {
-      cell.classList.toggle('is-found', discovered.has(logOrder[k]));
-    });
-    for (const el of document.querySelectorAll('.entry')) {
-      el.classList.toggle('is-found', discovered.has(Number(el.dataset.uninum)));
-    }
-    const done = count === associations.length;
-    document.getElementById('log').classList.toggle('is-complete', done);
-  }
-
-  document.getElementById('log-reset').addEventListener('click', () => {
-    if (!discovered.size) return;
-    if (!confirm('Clear your discovery log?')) return;
-    discovered.clear();
-    saveDiscovered(discovered);
-    refreshLog();
-    if (selected >= 0) signpost.show(associations[selected], {
-      gridRef: gridRef(selected),
-      color: DISTRICT_COLORS[associations[selected].district] ?? DISTRICT_FALLBACK,
-      bank: bankByDistrict.get(associations[selected].district),
-    });
-  });
-
   // --- Gazetteer ---------------------------------------------------------------
   function buildGazetteer() {
     const root = document.getElementById('directory');
     root.replaceChildren();
-    const bar = document.getElementById('log-bar');
-    bar.replaceChildren();
 
     const groups = banks.length
       ? banks
@@ -470,8 +391,7 @@ async function boot() {
           '<span class="entry-swatch" aria-hidden="true"></span>' +
           '<span class="entry-main"><span class="entry-line"><span class="entry-name"></span>' +
           '<span class="entry-leader" aria-hidden="true"></span><span class="entry-ref"></span></span>' +
-          '<span class="entry-hq"></span></span>' +
-          `<span class="entry-stamp" title="Discovered">${emblemSvg({ fg: 'currentColor', size: 16 })}</span>`;
+          '<span class="entry-hq"></span></span>';
         button.querySelector('.entry-name').textContent = a.name;
         button.querySelector('.entry-ref').textContent = ref;
         button.querySelector('.entry-hq').textContent = [a.hq.city, a.hq.state].filter(Boolean).join(', ');
@@ -485,12 +405,6 @@ async function boot() {
 
         li.append(button);
         list.append(li);
-
-        const cell = document.createElement('span');
-        cell.className = 'log-cell';
-        cell.title = a.name;
-        bar.append(cell);
-        logOrder.push(a.uninum);
       }
 
       section.append(list);
@@ -538,7 +452,6 @@ async function boot() {
   // --- Go ------------------------------------------------------------------------
   buildGazetteer();
   setMode(mode);
-  refreshLog();
   updateHud();
 
   new ResizeObserver(layout).observe(atlas);
@@ -589,23 +502,6 @@ function fillStats(stats, associations, banks) {
   set('stat-banks', stats.banks ?? banks.length);
   set('stat-counties', stats.counties);
   set('stat-states', stats.states);
-}
-
-function loadDiscovered() {
-  try {
-    const raw = JSON.parse(localStorage.getItem(STORE) ?? '[]');
-    return new Set(Array.isArray(raw) ? raw.map(Number) : []);
-  } catch {
-    return new Set();
-  }
-}
-
-function saveDiscovered(set) {
-  try {
-    localStorage.setItem(STORE, JSON.stringify([...set]));
-  } catch {
-    // Private mode or storage disabled: the log simply lasts for this visit.
-  }
 }
 
 /**

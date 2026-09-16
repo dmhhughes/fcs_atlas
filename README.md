@@ -2,8 +2,8 @@
 
 An interactive, pixel-art atlas of every Farm Credit lending association in the
 United States. The whole map is on screen at once: hover or click a territory to
-see who serves it, travel between neighbouring territories with the arrow keys,
-or roll a random one.
+see who serves it, or travel between neighbouring territories with the arrow
+keys.
 
 **Live:** <https://dmhhughes.github.io/fcs_atlas/>
 
@@ -24,7 +24,6 @@ npm run serve     # http://localhost:8080
 |---|---|
 | Hover / click | Highlight a territory / open its signpost |
 | Arrow keys (or WASD) | Travel to the neighbouring territory in that direction |
-| `R` | Roll a random territory, preferring ones not yet discovered |
 | `1` `2` | Colour the map by association or by district bank |
 | `Esc` | Clear the selection |
 | Find box | Filter the gazetteer; `Enter` opens the first match |
@@ -32,10 +31,9 @@ npm run serve     # http://localhost:8080
 Selecting a territory updates the URL to `#t=<FCA institution number>`, so a link
 such as `index.html#t=710454` opens with AgTrust, ACA already chosen.
 
-The **field log** under the map records which territories you have found (kept
-in `localStorage`), and the **gazetteer** below lists all 55 associations
-grouped by the district bank that funds them. Each carries the atlas grid square
-(`A`–`P` by `1`–`10`, matching the rulers around the map) of its territory.
+The **gazetteer** below the map lists all 55 associations, grouped by the
+district bank that funds them. Each carries the atlas grid square (`A`–`P` by
+`1`–`10`, matching the rulers around the map) of its territory.
 
 ## Design
 
@@ -56,7 +54,7 @@ low in the west.
 - **Type:** Pixelify Sans for display and reading text, Silkscreen for labels
   and grid references. Both are self-hosted in `assets/fonts/`.
 - **Emblem:** an 8×8 sprout over a ploughed field, drawn as SVG for the title
-  plate, the favicon, and the discovery stamps.
+  plate and the favicon.
 - **Header:** a sunset farm scene rendered at true low resolution (one scene
   pixel is four CSS pixels) with an ordered-dither sky. Only the birds, stars
   and windmill animate, at 8 fps, and only while visible and when motion is
@@ -81,7 +79,7 @@ npm run coverage  # render any land that no association claims
 | File | Role |
 |---|---|
 | `index.html`, `styles.css` | The page |
-| `src/main.js` | Layout, input, selection, roll, field log, gazetteer, search |
+| `src/main.js` | Layout, input, selection, gazetteer, search |
 | `src/map.js` | Region geometry, hit testing, the golden-hour base renderer |
 | `src/render.js` | One frame from state; shared by the page and `npm run preview` |
 | `src/navigate.js` | Spatial arrow-key navigation between territories |

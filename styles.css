@@ -449,17 +449,6 @@ canvas#stage:focus-visible { outline: 3px solid var(--sun); outline-offset: -3px
 
 .sign-name { margin: 0 32px 8px 0; font: 700 24px/1.1 var(--f-display); color: var(--ink); }
 
-.sign-new {
-  display: inline-block;
-  margin: 0 0 10px;
-  padding: 3px 6px 2px;
-  font: 700 8px/1.4 var(--f-label);
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  color: var(--parchment);
-  background: var(--rose-deep);
-}
-
 .sign-facts {
   display: grid;
   grid-template-columns: auto 1fr;
@@ -497,10 +486,8 @@ canvas#stage:focus-visible { outline: 3px solid var(--sun); outline-offset: -3px
 /* --- Controls -------------------------------------------------------------- */
 .controls {
   display: grid;
-  grid-template-columns: auto 1fr auto;
-  grid-template-areas:
-    'modes legend roll'
-    'log log log';
+  grid-template-columns: auto 1fr;
+  grid-template-areas: 'modes legend';
   align-items: center;
   gap: 16px 24px;
   margin-top: 32px;
@@ -510,7 +497,7 @@ canvas#stage:focus-visible { outline: 3px solid var(--sun); outline-offset: -3px
 }
 
 .modes { grid-area: modes; display: flex; gap: 8px; }
-.modes button, .roll {
+.modes button {
   display: inline-flex;
   align-items: center;
   font: 400 16px/1 var(--f-label);
@@ -521,26 +508,14 @@ canvas#stage:focus-visible { outline: 3px solid var(--sun); outline-offset: -3px
   cursor: pointer;
   box-shadow: inset 0 0 0 2px var(--violet), 0 4px 0 0 #120d20;
 }
-.modes button:hover, .roll:hover { background: var(--violet); }
-.modes button:active, .roll:active { transform: translateY(4px); box-shadow: inset 0 0 0 2px var(--violet); }
+.modes button:hover { background: var(--violet); }
+.modes button:active { transform: translateY(4px); box-shadow: inset 0 0 0 2px var(--violet); }
 .modes button[aria-checked='true'] {
   color: var(--ink);
   background: var(--sun);
   box-shadow: inset 0 0 0 2px var(--ink), 0 4px 0 0 var(--amber);
 }
 .modes button[aria-checked='true'] kbd { background: var(--ink); color: var(--sun); box-shadow: none; }
-
-.roll {
-  grid-area: roll;
-  gap: 10px;
-  color: var(--parchment);
-  background: var(--rose-deep);
-  box-shadow: inset 0 0 0 2px var(--rose), 0 4px 0 0 #5a1633;
-}
-.roll:hover { background: var(--rose); color: var(--ink); }
-.roll kbd { margin: 0 0 0 4px; }
-.roll.is-rolling .die { animation: tumble 360ms steps(4) infinite; }
-@keyframes tumble { to { transform: rotate(360deg); } }
 
 .legend {
   grid-area: legend;
@@ -556,41 +531,6 @@ canvas#stage:focus-visible { outline: 3px solid var(--sun); outline-offset: -3px
 .legend li { display: flex; align-items: center; gap: 6px; }
 .legend-swatch { width: 12px; height: 12px; box-shadow: 0 0 0 2px var(--night); }
 .legend-note { font-style: normal; }
-
-.log {
-  grid-area: log;
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  padding-top: 14px;
-  border-top: 2px dashed var(--dusk-2);
-}
-.log-label { margin: 0; white-space: nowrap; font: 400 8px/1.4 var(--f-label); letter-spacing: 0.18em; text-transform: uppercase; color: var(--lilac); }
-.log-label strong { font: 700 16px/1 var(--f-label); letter-spacing: 0; color: var(--sun); margin: 0 4px; }
-
-.log-bar { flex: 1; display: flex; gap: 2px; min-width: 0; }
-.log-cell {
-  flex: 1;
-  height: 12px;
-  background: #4a3a70;
-  box-shadow: inset 0 -2px 0 0 var(--night), inset 0 0 0 1px #5b4785;
-}
-.log-cell.is-found { background: var(--sun); box-shadow: inset 0 -2px 0 0 var(--amber); }
-.log.is-complete .log-cell { background: var(--rose); box-shadow: inset 0 -2px 0 0 var(--rose-deep); }
-
-.link-btn {
-  font: 400 8px/1 var(--f-label);
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  color: var(--lilac);
-  background: none;
-  border: 0;
-  padding: 6px;
-  cursor: pointer;
-  text-decoration: underline;
-  text-underline-offset: 3px;
-}
-.link-btn:hover { color: var(--rose); }
 
 /* --- Gazetteer ------------------------------------------------------------- */
 .gazetteer { margin-top: 72px; }
@@ -666,7 +606,7 @@ canvas#stage:focus-visible { outline: 3px solid var(--sun); outline-offset: -3px
 
 .entry {
   display: grid;
-  grid-template-columns: 12px 1fr 16px;
+  grid-template-columns: 12px 1fr;
   align-items: center;
   gap: 10px;
   width: 100%;
@@ -696,9 +636,6 @@ canvas#stage:focus-visible { outline: 3px solid var(--sun); outline-offset: -3px
 /* Grid references use the same 16px lettering as the rulers they point to. */
 .entry-ref { font: 700 16px/1 var(--f-label); color: var(--sun); }
 .entry-hq { display: block; font-size: 13px; color: var(--lilac); }
-
-.entry-stamp { color: var(--rose); line-height: 0; opacity: 0; transform: scale(0.6); }
-.entry.is-found .entry-stamp { opacity: 1; transform: none; transition: transform 160ms steps(2), opacity 160ms steps(2); }
 
 /* --- Footer ---------------------------------------------------------------- */
 .foot {
@@ -734,9 +671,8 @@ canvas#stage:focus-visible { outline: 3px solid var(--sun); outline-offset: -3px
   .banks { grid-template-columns: 1fr; }
   .controls {
     grid-template-columns: 1fr;
-    grid-template-areas: 'modes' 'roll' 'legend' 'log';
+    grid-template-areas: 'modes' 'legend';
   }
-  .roll { justify-self: start; }
   .section-head { grid-template-columns: 1fr; }
   .section-head p { justify-self: start; text-align: left; }
 }
@@ -754,13 +690,11 @@ canvas#stage:focus-visible { outline: 3px solid var(--sun); outline-offset: -3px
   .ruler-top span { height: 10px; line-height: 10px; }
   .ruler-left span { width: 14px; }
   .modes { flex-wrap: wrap; }
-  .modes button, .roll { font-size: 8px; padding: 10px; }
+  .modes button { font-size: 8px; padding: 10px; }
   /* A phone-sized map is too small to be covered. The readout and the
      signpost drop below it instead of floating over it. */
   .hud { position: static; max-width: none; margin: 0; font-size: 14px; box-shadow: none; }
   .signpost { position: static; width: auto; max-height: none; overflow: visible; padding: 12px 8px 8px; }
-  .log { flex-wrap: wrap; }
-  .log-bar { flex-basis: 100%; order: 3; }
 }
 
 @media (prefers-reduced-motion: reduce) {
