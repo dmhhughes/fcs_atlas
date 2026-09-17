@@ -136,25 +136,16 @@ h1 {
   color: var(--ink-soft);
 }
 
-/* Marginalia, the way a printed quadrangle carries its own reading: north
-   arrow, bar scale, source line. */
+/* Marginalia, the way a printed quadrangle carries its own reading: the
+   emblem, centered against the title text instead of pinned to its
+   baseline. */
 .title-marginalia {
   display: flex;
   align-items: center;
-  gap: 20px;
-  color: var(--ink-soft);
+  width: min(180px, 100%);
 }
-.compass { width: 56px; height: 56px; color: var(--ink); fill: currentColor; }
-.compass text { font-family: var(--f-label); fill: currentColor; }
 
-.series-line {
-  margin: 0;
-  max-width: 20ch;
-  font-family: var(--f-body);
-  font-size: 13px;
-  font-style: italic;
-  line-height: 1.4;
-}
+.hero-emblem { color: var(--ink); }
 
 /* --- Layout ---------------------------------------------------------------- */
 main {
