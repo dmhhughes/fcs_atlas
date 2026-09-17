@@ -16,7 +16,6 @@
 <header class="hero">
   <div class="title-block frame">
     <div class="title-main">
-      <span class="emblem" data-emblem data-size="40"></span>
       <div>
         <p class="eyebrow">The Farm Credit System</p>
         <h1>Territory Atlas</h1>
@@ -24,16 +23,12 @@
       </div>
     </div>
     <div class="title-marginalia" aria-hidden="true">
-      <svg class="compass" viewBox="0 0 32 40" shape-rendering="geometricPrecision">
-        <text x="16" y="7" text-anchor="middle" font-size="7">N</text>
-        <path fill="currentColor" d="M16 12 L19.5 22.5 L30 26 L19.5 29.5 L16 40 L12.5 29.5 L2 26 L12.5 22.5 Z"/>
+      <svg class="compass" viewBox="0 0 64 64" shape-rendering="geometricPrecision">
+        <circle cx="32" cy="32" r="27" fill="none" stroke="currentColor" stroke-width="1.5"/>
+        <path fill="none" stroke="currentColor" stroke-width="1.5" d="M32 2 L32 8 M32 56 L32 62 M62 32 L56 32 M2 32 L8 32"/>
+        <text x="32" y="16" text-anchor="middle" font-size="7">N</text>
+        <path fill="currentColor" d="M32 18 L35.5 28.5 L46 32 L35.5 35.5 L32 46 L28.5 35.5 L18 32 L28.5 28.5 Z"/>
       </svg>
-      <div class="scale">
-        <div class="scale-bar">
-          <span></span><span></span><span></span><span></span>
-        </div>
-        <div class="scale-labels"><span>0</span><span>100&nbsp;mi</span></div>
-      </div>
       <p class="series-line">Compiled from the FCA institution directory</p>
     </div>
   </div>
@@ -42,51 +37,42 @@
 <main>
   <p id="boot-error" class="boot-error" hidden></p>
 
-  <ul class="stats" aria-label="At a glance">
-    <li><strong id="stat-associations">55</strong><span>Associations</span></li>
-    <li><strong id="stat-banks">4</strong><span>District banks</span></li>
-    <li><strong id="stat-counties">3,186</strong><span>Counties chartered</span></li>
-    <li><strong id="stat-states">51</strong><span>States &amp; territories</span></li>
-  </ul>
-
   <section class="atlas" aria-labelledby="atlas-title">
     <div class="section-head">
-      <h2 id="atlas-title"><span class="plate-no">Plate I</span>The Territories</h2>
-      <p>Hover or click a territory to see who serves it. The arrow keys travel to the neighbouring territory in that direction.</p>
-    </div>
-
-    <div class="plate frame" id="plate">
-      <div class="ruler-corner" aria-hidden="true">
-        <svg viewBox="0 0 7 9" width="14" height="18" shape-rendering="crispEdges">
-          <g fill="currentColor"><rect x="3" y="0" width="1" height="1"/><rect x="2" y="1" width="3" height="1"/><rect x="1" y="2" width="5" height="1"/><rect x="3" y="3" width="1" height="2"/></g>
-          <g fill="currentColor"><rect x="1" y="6" width="1" height="3"/><rect x="2" y="7" width="1" height="1"/><rect x="3" y="7" width="1" height="1"/><rect x="4" y="8" width="1" height="1"/><rect x="5" y="6" width="1" height="3"/><rect x="4" y="6" width="1" height="1"/></g>
-        </svg>
-      </div>
-      <div class="ruler ruler-top" id="ruler-top" aria-hidden="true"></div>
-      <div class="ruler ruler-left" id="ruler-left" aria-hidden="true"></div>
-
-      <div class="stage-wrap">
-        <canvas id="stage" tabindex="0" role="application"
-                aria-label="Map of Farm Credit Association territories. Arrow keys move between territories; 1 and 2 change the colouring."></canvas>
-        <div id="signpost" class="signpost" hidden role="dialog" aria-live="polite" aria-label="Association details"></div>
-        <p id="hud" class="hud" aria-hidden="true"></p>
-      </div>
+      <h2 id="atlas-title">The Territories</h2>
     </div>
 
     <div class="controls">
-      <div class="modes" role="radiogroup" aria-label="Colour the map by">
-        <button type="button" role="radio" data-mode="territory" aria-checked="true"><kbd>1</kbd>Territories</button>
-        <button type="button" role="radio" data-mode="district" aria-checked="false"><kbd>2</kbd>Districts</button>
-      </div>
+      <h3 id="legend-title" class="legend-title">District Banks</h3>
+      <ul id="legend" class="legend" aria-labelledby="legend-title"></ul>
+    </div>
 
-      <ul id="legend" class="legend" aria-label="Legend"></ul>
+    <div class="map-row">
+      <div class="map-col">
+        <div class="plate frame" id="plate">
+          <div class="ruler-corner" aria-hidden="true">
+            <svg viewBox="0 0 32 40" width="14" height="18" shape-rendering="geometricPrecision">
+              <text x="16" y="7" text-anchor="middle" font-size="7">N</text>
+              <path fill="currentColor" d="M16 12 L19.5 22.5 L30 26 L19.5 29.5 L16 40 L12.5 29.5 L2 26 L12.5 22.5 Z"/>
+            </svg>
+          </div>
+          <div class="ruler ruler-top" id="ruler-top" aria-hidden="true"></div>
+          <div class="ruler ruler-left" id="ruler-left" aria-hidden="true"></div>
+
+          <div class="stage-wrap">
+            <canvas id="stage" tabindex="0" role="application"
+                    aria-label="Map of Farm Credit Association territories. Arrow keys move between territories."></canvas>
+            <p id="hud" class="hud" aria-hidden="true"></p>
+          </div>
+        </div>
+      </div>
+      <div id="signpost" class="signpost" aria-live="polite" aria-label="Territory details"></div>
     </div>
   </section>
 
   <section class="gazetteer" aria-labelledby="gaz-title">
     <div class="section-head">
-      <h2 id="gaz-title"><span class="plate-no">Index</span>Gazetteer</h2>
-      <p>All <span id="region-count">55</span> associations, grouped by the district bank that funds them. Grid squares refer to the rulers around the map.</p>
+      <h2 id="gaz-title">Index</h2>
     </div>
 
     <div class="search">

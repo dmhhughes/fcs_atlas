@@ -1,5 +1,6 @@
 /**
- * The signpost: details for the chosen territory, pinned top-right of the map.
+ * The signpost: a permanent side panel beside the map. It shows an "at a
+ * glance" summary until a territory is chosen, then that territory's details.
  *
  * DOM rather than canvas, so it carries a real link, selectable text, and is
  * announced to screen readers.
@@ -12,10 +13,7 @@ export class Signpost {
     this.currentUninum = null;
 
     this.root.addEventListener('click', (e) => {
-      if (e.target.closest('[data-close]')) {
-        this.hide();
-        onClose?.();
-      }
+      if (e.target.closest('[data-close]')) onClose?.();
     });
   }
 
@@ -59,12 +57,33 @@ export class Signpost {
         ${shared.length ? `<p class="sign-shared">Also chartered here: ${esc(listify(shared))}.</p>` : ''}
         ${a.url ? `<a class="sign-link" href="${esc(a.url)}" target="_blank" rel="noopener noreferrer">Visit ${esc(shortHost(a.url))} &rarr;</a>` : ''}
       </article>`;
-    this.root.hidden = false;
   }
 
-  hide() {
-    this.root.hidden = true;
+  /**
+   * The default card, shown before any territory is chosen (and again after
+   * one is closed).
+   * @param {object} n
+   * @param {number} n.associations
+   * @param {number} n.banks
+   * @param {number} n.counties
+   * @param {number} n.states
+   */
+  showDefault({ associations, banks, counties, states } = {}) {
     this.currentUninum = null;
+    const fmt = (v) => (Number.isFinite(v) ? v.toLocaleString('en-US') : '—');
+
+    this.root.innerHTML = `
+      <article class="sign frame" style="--district:var(--contour)">
+        <p class="sign-eyebrow"><span>At a Glance</span></p>
+        <h2 class="sign-name">Farm Credit System</h2>
+        <p class="sign-copy">Hover or click a territory on the map to see who serves it.</p>
+        <ul class="sign-stats">
+          <li><strong>${fmt(associations)}</strong><span>Associations</span></li>
+          <li><strong>${fmt(banks)}</strong><span>District banks</span></li>
+          <li><strong>${fmt(counties)}</strong><span>Counties chartered</span></li>
+          <li><strong>${fmt(states)}</strong><span>States &amp; territories</span></li>
+        </ul>
+      </article>`;
   }
 }
 

@@ -54,7 +54,7 @@ body {
   text-rendering: optimizeSpeed;
 }
 
-img, svg, canvas { image-rendering: pixelated; }
+canvas { image-rendering: pixelated; }
 a { color: var(--declination); }
 kbd {
   font: 700 8px/1 var(--f-label);
@@ -113,8 +113,8 @@ kbd {
 
 .eyebrow {
   margin: 0 0 4px;
-  font: 400 8px/1.4 var(--f-label);
-  letter-spacing: 0.3em;
+  font: 400 14px/1.4 var(--f-label);
+  letter-spacing: 0.2em;
   text-transform: uppercase;
   color: var(--soil);
 }
@@ -128,7 +128,7 @@ h1 {
 
 .tagline {
   margin: 8px 0 0;
-  max-width: 44ch;
+  white-space: nowrap;
   font-family: var(--f-body);
   font-size: 16px;
   line-height: 1.5;
@@ -144,19 +144,8 @@ h1 {
   gap: 20px;
   color: var(--ink-soft);
 }
-.compass { width: 32px; height: 40px; color: var(--ink); fill: currentColor; }
+.compass { width: 56px; height: 56px; color: var(--ink); fill: currentColor; }
 .compass text { font-family: var(--f-label); fill: currentColor; }
-
-.scale { width: 120px; }
-.scale-bar { display: flex; height: 8px; border: 1.5px solid var(--ink); }
-.scale-bar span { flex: 1; background: var(--paper); }
-.scale-bar span:nth-child(even) { background: var(--ink); }
-.scale-labels {
-  display: flex;
-  justify-content: space-between;
-  margin-top: 3px;
-  font: 400 9px/1 var(--f-label);
-}
 
 .series-line {
   margin: 0;
@@ -182,71 +171,22 @@ main {
   box-shadow: inset 0 0 0 2px var(--declination);
 }
 
-/* --- Stats ----------------------------------------------------------------- */
-.stats {
-  list-style: none;
-  margin: 0 0 48px;
-  padding: 0;
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 16px;
-}
-.stats li {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4px;
-  padding: 16px 8px 12px;
-  background: var(--paper-2);
-  box-shadow: inset 0 -3px 0 0 var(--rule);
-}
-.stats strong {
-  font: 400 40px/1 var(--f-display);
-  color: var(--contour);
-  text-shadow: 2px 2px 0 rgba(35, 36, 31, 0.18);
-}
-.stats span {
-  font: 400 8px/1.4 var(--f-label);
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  color: var(--ink-soft);
-}
-
 /* --- Section heads --------------------------------------------------------- */
 .section-head {
-  display: grid;
-  grid-template-columns: auto 1fr;
-  align-items: end;
-  gap: 8px 24px;
   margin-bottom: 20px;
 }
 .section-head h2 {
   margin: 0;
-  display: flex;
-  align-items: baseline;
-  gap: 12px;
   font: 700 32px/1 var(--f-display);
   color: var(--ink);
 }
-.plate-no {
-  font: 400 8px/1 var(--f-label);
-  letter-spacing: 0.25em;
-  text-transform: uppercase;
-  color: var(--paper);
-  background: var(--contour);
-  padding: 4px 6px 3px;
-  transform: translateY(-6px);
-}
-.section-head p {
-  margin: 0;
-  max-width: 60ch;
-  justify-self: end;
-  text-align: right;
-  font-family: var(--f-body);
-  font-size: 17px;
-  line-height: 1.5;
-  letter-spacing: 0.01em;
-  color: var(--ink-soft);
+
+/* --- Map row: the plate beside a persistent signpost panel ------------------ */
+.map-row {
+  display: grid;
+  grid-template-columns: 1fr minmax(320px, 380px);
+  gap: 16px;
+  align-items: stretch;
 }
 
 /* --- The plate: map on a parchment mat, with atlas rulers ------------------ */
@@ -275,6 +215,7 @@ main {
   place-items: center;
   color: var(--declination);
 }
+.ruler-corner text { font-family: var(--f-label); fill: currentColor; }
 
 .ruler { position: relative; font: 700 16px/1 var(--f-label); color: var(--soil); }
 .ruler-top { grid-area: 1 / 2; }
@@ -349,17 +290,14 @@ canvas#stage:focus-visible { outline: 3px solid var(--declination); outline-offs
 .hud-name { color: var(--ink); font-weight: 700; }
 .hud-hq { color: var(--ink-soft); }
 
-/* --- Signpost (top-right) -------------------------------------------------- */
+/* --- Signpost (side panel) --------------------------------------------------- */
 .signpost {
-  position: absolute;
-  top: 12px;
-  right: 12px;
-  z-index: 3;
-  width: min(340px, calc(100% - 24px));
-  max-height: calc(100% - 24px);
+  width: 100%;
+  height: 100%;
+  position: sticky;
+  top: 16px;
   overflow: auto;
 }
-.signpost[hidden] { display: none; }
 
 .sign {
   position: relative;
@@ -451,48 +389,67 @@ canvas#stage:focus-visible { outline: 3px solid var(--declination); outline-offs
 }
 .sign-link:hover { background: var(--declination); }
 
+/* --- Signpost default state: "at a glance" stats before any selection ------ */
+.sign-copy {
+  margin: 0 0 12px;
+  font-family: var(--f-body);
+  font-size: 15px;
+  line-height: 1.6;
+  letter-spacing: 0.01em;
+  color: var(--ink-soft);
+}
+.sign-stats {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+}
+.sign-stats li {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 10px 8px 8px;
+  background: var(--paper);
+  box-shadow: inset 0 -3px 0 0 var(--rule);
+}
+.sign-stats strong {
+  font: 400 28px/1 var(--f-display);
+  color: var(--contour);
+}
+.sign-stats span {
+  font: 400 8px/1.4 var(--f-label);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+
 /* --- Controls -------------------------------------------------------------- */
 .controls {
-  display: grid;
-  grid-template-columns: auto 1fr;
-  grid-template-areas: 'modes legend';
-  align-items: center;
-  gap: 16px 24px;
-  margin-top: 32px;
+  width: fit-content;
+  max-width: 100%;
+  margin: 0 0 16px;
   padding: 16px 20px;
   background: var(--paper-2);
   box-shadow: inset 0 -3px 0 0 var(--rule);
 }
 
-.modes { grid-area: modes; display: flex; gap: 8px; }
-.modes button {
-  display: inline-flex;
-  align-items: center;
-  font: 400 16px/1 var(--f-label);
-  color: var(--ink);
-  background: var(--paper);
-  border: 0;
-  padding: 10px 12px 8px;
-  cursor: pointer;
-  box-shadow: inset 0 0 0 2px var(--water), 0 3px 0 0 var(--rule);
+.legend-title {
+  margin: 0 0 10px;
+  font: 400 8px/1 var(--f-label);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--soil);
 }
-.modes button:hover { background: rgba(111, 143, 160, 0.16); }
-.modes button:active { transform: translateY(3px); box-shadow: inset 0 0 0 2px var(--water); }
-.modes button[aria-checked='true'] {
-  color: var(--paper);
-  background: var(--contour);
-  box-shadow: inset 0 0 0 2px var(--ink), 0 3px 0 0 var(--soil);
-}
-.modes button[aria-checked='true'] kbd { background: var(--paper); color: var(--contour); box-shadow: none; }
 
 .legend {
-  grid-area: legend;
   list-style: none;
   margin: 0;
   padding: 0;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px 16px;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 6px 24px;
   font-family: var(--f-body);
   font-size: 15px;
   line-height: 1.4;
@@ -500,7 +457,6 @@ canvas#stage:focus-visible { outline: 3px solid var(--declination); outline-offs
 }
 .legend li { display: flex; align-items: center; gap: 6px; }
 .legend-swatch { width: 12px; height: 12px; box-shadow: 0 0 0 2px var(--paper); }
-.legend-note { font-style: normal; }
 
 /* --- Gazetteer ------------------------------------------------------------- */
 .gazetteer { margin-top: 72px; }
@@ -558,7 +514,6 @@ canvas#stage:focus-visible { outline: 3px solid var(--declination); outline-offs
   height: 6px;
   background: repeating-linear-gradient(90deg, var(--district) 0 6px, transparent 6px 14px);
 }
-.bank-chip { width: 12px; height: 12px; background: var(--ink); flex: none; }
 .bank-text { flex: 1; min-width: 0; }
 .bank-name { margin: 0; font: 700 16px/1.2 var(--f-label); letter-spacing: 0.06em; text-transform: uppercase; }
 .bank-meta { margin: 2px 0 0; font-family: var(--f-body); font-size: 15px; color: var(--paper); opacity: 0.85; }
@@ -574,7 +529,7 @@ canvas#stage:focus-visible { outline: 3px solid var(--declination); outline-offs
 
 .entry {
   display: grid;
-  grid-template-columns: 12px 1fr;
+  grid-template-columns: 1fr;
   align-items: center;
   gap: 10px;
   width: 100%;
@@ -590,7 +545,6 @@ canvas#stage:focus-visible { outline: 3px solid var(--declination); outline-offs
 .entry:disabled { opacity: 0.4; cursor: default; }
 .entry.is-selected { background: rgba(178, 58, 46, 0.12); box-shadow: inset 0 0 0 2px var(--declination); }
 
-.entry-swatch { width: 12px; height: 12px; box-shadow: 0 0 0 2px var(--paper-2); }
 .entry-main { min-width: 0; }
 .entry-line { display: flex; align-items: baseline; gap: 6px; }
 .entry-name { font-family: var(--f-body); font-size: 16px; line-height: 1.25; }
@@ -627,12 +581,6 @@ canvas#stage:focus-visible { outline: 3px solid var(--declination); outline-offs
 /* --- Narrow screens -------------------------------------------------------- */
 @media (max-width: 900px) {
   .banks { grid-template-columns: 1fr; }
-  .controls {
-    grid-template-columns: 1fr;
-    grid-template-areas: 'modes' 'legend';
-  }
-  .section-head { grid-template-columns: 1fr; }
-  .section-head p { justify-self: start; text-align: left; }
 }
 
 @media (max-width: 640px) {
@@ -641,19 +589,19 @@ canvas#stage:focus-visible { outline: 3px solid var(--declination); outline-offs
   /* Decorative marginalia only - the map itself is the content, and there
      isn't room for both on a phone. */
   .title-marginalia { display: none; }
+  .tagline { white-space: normal; }
+  .map-row { grid-template-columns: 1fr; }
   .stats { grid-template-columns: repeat(2, 1fr); }
-  .stats strong { font-size: 24px; }
+  .stats strong { font-size: 26px; }
   .plate { --ruler-w: 20px; --ruler-h: 16px; padding: 6px 10px 10px 6px; }
   .ruler { font-size: 8px; }
   .ruler-corner svg { width: 10px; height: 13px; }
   .ruler-top span { height: 10px; line-height: 10px; }
   .ruler-left span { width: 14px; }
-  .modes { flex-wrap: wrap; }
-  .modes button { font-size: 8px; padding: 10px; }
   /* A phone-sized map is too small to be covered. The readout and the
      signpost drop below it instead of floating over it. */
   .hud { position: static; max-width: none; margin: 0; font-size: 14px; box-shadow: none; }
-  .signpost { position: static; width: auto; max-height: none; overflow: visible; padding: 12px 8px 8px; }
+  .signpost { position: static; padding: 12px 8px 8px; }
 }
 
 @media (prefers-reduced-motion: reduce) {

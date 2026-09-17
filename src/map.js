@@ -8,7 +8,7 @@
  * simplified edges - crisp reference-map linework rather than a tile mosaic.
  */
 
-import { SEA, LIGHT, DISTRICT_COLORS, DISTRICT_FALLBACK, regionColor } from './tiles.js';
+import { SEA, LIGHT, DISTRICT_COLORS, DISTRICT_FALLBACK } from './tiles.js';
 
 export class GameMap {
   constructor(mapData, associations) {
@@ -64,36 +64,32 @@ export class GameMap {
     ];
   }
 
-  /** The swatch colour an association carries in a given mode. */
-  colorOf(index, mode) {
-    if (mode === 'district') {
-      return DISTRICT_COLORS[this.associations[index]?.district] ?? DISTRICT_FALLBACK;
-    }
-    return regionColor(index);
+  /** The swatch colour an association carries. */
+  colorOf(index) {
+    return DISTRICT_COLORS[this.associations[index]?.district] ?? DISTRICT_FALLBACK;
   }
 
   // --- Rendering ------------------------------------------------------------
 
   /**
-   * Draw the whole map.
+   * Draw the whole map, coloured by district bank.
    * @param {object} opts
-   * @param {'territory'|'district'} opts.mode
    * @param {number} opts.unit  one device pixel in world units - hairline
    *                            widths are given in multiples of it. Territory
    *                            edges are traced vector polygons, not tile-
    *                            aligned, so they anti-alias normally.
    */
-  draw(ctx, { mode = 'territory', unit = 1 } = {}) {
+  draw(ctx, { unit = 1 } = {}) {
     // The sea is a single flat tint - no distance banding.
     ctx.fillStyle = SEA;
     ctx.fillRect(0, 0, this.worldWidth, this.worldHeight);
 
     this.#drawGraticule(ctx, unit);
 
-    // Land, coloured by mode.
+    // Land, coloured by district bank.
     for (let i = 0; i < this.territories.length; i++) {
       const rings = this.territories[i].rings;
-      if (rings.length) this.#fillRings(ctx, rings, this.colorOf(i, mode));
+      if (rings.length) this.#fillRings(ctx, rings, this.colorOf(i));
     }
 
     // Territory hairlines: this alone is the coastline wherever a territory
@@ -106,10 +102,8 @@ export class GameMap {
       if (rings.length) this.#strokeRings(ctx, rings, LIGHT.territoryLine, unit);
     }
 
-    if (mode === 'district') {
-      for (const district of Object.values(this.districts)) {
-        if (district.rings.length) this.#strokeRings(ctx, district.rings, LIGHT.districtBorder, 2 * unit);
-      }
+    for (const district of Object.values(this.districts)) {
+      if (district.rings.length) this.#strokeRings(ctx, district.rings, LIGHT.districtBorder, 2 * unit);
     }
   }
 

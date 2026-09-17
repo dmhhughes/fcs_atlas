@@ -19,15 +19,14 @@ export const OVERLAY = {
  * @param {CanvasRenderingContext2D} ctx  already transformed into world space
  * @param {import('./map.js').GameMap} map
  * @param {object} s
- * @param {string} s.mode       territory | district
  * @param {number} s.unit       one device pixel, in world units
  * @param {number} s.hovered    association index or -1
  * @param {number} s.selected   association index or -1
  * @param {{index:number, t:number}|null} s.ping
  * @param {boolean} s.drawBase  false when the caller has blitted a cached base
  */
-export function renderFrame(ctx, map, { mode, unit, hovered = -1, selected = -1, ping = null, drawBase = true }) {
-  if (drawBase) map.draw(ctx, { mode, unit });
+export function renderFrame(ctx, map, { unit, hovered = -1, selected = -1, ping = null, drawBase = true }) {
+  if (drawBase) map.draw(ctx, { unit });
 
   if (hovered >= 0 && hovered !== selected) {
     map.fillRegion(ctx, hovered, OVERLAY.hoverWash);

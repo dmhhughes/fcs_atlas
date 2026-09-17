@@ -18,7 +18,6 @@ const KEY_DIRECTIONS = {
   ArrowUp: 'up', ArrowDown: 'down', ArrowLeft: 'left', ArrowRight: 'right',
   KeyW: 'up', KeyS: 'down', KeyA: 'left', KeyD: 'right',
 };
-const MODE_KEYS = { 1: 'territory', 2: 'district' };
 
 /** Atlas grid: 200 world px squares give 16 columns (A-P) by 10 rows (1-10). */
 const CELL = 200;
@@ -42,13 +41,19 @@ async function boot() {
   const map = new GameMap(mapData, associations);
   const bankByDistrict = new Map(banks.map((b) => [b.district, b]));
   const indexByUninum = new Map(associations.map((a, i) => [a.uninum, i]));
+  const glance = {
+    associations: Number.isFinite(stats.associations) ? stats.associations : associations.length,
+    banks: Number.isFinite(stats.banks) ? stats.banks : banks.length,
+    counties: stats.counties,
+    states: stats.states,
+  };
 
   const canvas = document.getElementById('stage');
   const ctx = canvas.getContext('2d', { alpha: false });
   const base = document.createElement('canvas');
   const baseCtx = base.getContext('2d', { alpha: false });
   const plate = document.getElementById('plate');
-  const atlas = plate.closest('.atlas') ?? plate.parentElement;
+  const mapCol = plate.parentElement;
   const hud = document.getElementById('hud');
   let lastDpr = 0;
 
@@ -61,7 +66,6 @@ async function boot() {
 
   let hovered = -1;
   let selected = -1;
-  let mode = 'territory';
   let ping = null;
   let pingFrame = 0;
   let baseDirty = true;
@@ -76,7 +80,6 @@ async function boot() {
   let originDevX = 0; // device px
   let originDevY = 0;
 
-  fillStats(stats, associations, banks);
   buildRulers();
 
   // --- Grid references -------------------------------------------------------
@@ -105,7 +108,7 @@ async function boot() {
     const cs = getComputedStyle(plate);
     const chrome = parseFloat(cs.paddingLeft) + parseFloat(cs.paddingRight) +
       (parseFloat(cs.getPropertyValue('--ruler-w')) || 0);
-    const availW = Math.max(160, atlas.clientWidth - chrome);
+    const availW = Math.max(160, mapCol.clientWidth - chrome);
     const availH = Math.max(160, window.innerHeight * 0.78);
 
     const fit = Math.min(availW / map.worldWidth, availH / map.worldHeight);
@@ -169,7 +172,7 @@ async function boot() {
     baseCtx.fillRect(0, 0, base.width, base.height);
     worldTransform(baseCtx);
     baseCtx.imageSmoothingEnabled = false;
-    map.draw(baseCtx, { mode, unit });
+    map.draw(baseCtx, { unit });
     baseDirty = false;
   }
 
@@ -180,7 +183,7 @@ async function boot() {
     ctx.imageSmoothingEnabled = false;
     ctx.drawImage(base, 0, 0);
     worldTransform(ctx);
-    renderFrame(ctx, map, { mode, unit, hovered, selected, ping, drawBase: false });
+    renderFrame(ctx, map, { unit, hovered, selected, ping, drawBase: false });
   }
 
   function startPing(index) {
@@ -254,7 +257,7 @@ async function boot() {
   function clearSelection() {
     selected = -1;
     if (location.hash) history.replaceState(null, '', location.pathname + location.search);
-    signpost.hide();
+    signpost.showDefault(glance);
     highlightListItem(null);
     updateHud();
     render();
@@ -286,7 +289,6 @@ async function boot() {
     if (e.metaKey || e.ctrlKey || e.altKey) return;
 
     if (e.key === 'Escape') { clearSelection(); return; }
-    if (MODE_KEYS[e.key]) { setMode(MODE_KEYS[e.key]); return; }
 
     const direction = KEY_DIRECTIONS[e.code];
     if (!direction) return;
@@ -300,20 +302,7 @@ async function boot() {
     if (next !== null) setSelected(next);
   });
 
-  // --- View modes ------------------------------------------------------------
-  const modeButtons = [...document.querySelectorAll('[data-mode]')];
-  for (const b of modeButtons) b.addEventListener('click', () => setMode(b.dataset.mode));
-
-  function setMode(next) {
-    mode = next;
-    for (const b of modeButtons) b.setAttribute('aria-checked', String(b.dataset.mode === mode));
-    document.getElementById('directory').dataset.mode = mode;
-    renderLegend();
-    refreshSwatches();
-    baseDirty = true;
-    render();
-  }
-
+  // --- Legend ------------------------------------------------------------------
   function renderLegend() {
     const legend = document.getElementById('legend');
     legend.replaceChildren();
@@ -326,14 +315,7 @@ async function boot() {
       legend.append(li);
     };
 
-    if (mode === 'district') {
-      for (const b of banks) item(DISTRICT_COLORS[b.district] ?? DISTRICT_FALLBACK, `${b.district} · ${b.name}`);
-    } else {
-      const li = document.createElement('li');
-      li.className = 'legend-note';
-      li.textContent = `${associations.length} colours, one for each association`;
-      legend.append(li);
-    }
+    for (const b of banks) item(DISTRICT_COLORS[b.district] ?? DISTRICT_FALLBACK, `${b.district} · ${b.name}`);
   }
 
   // --- Gazetteer ---------------------------------------------------------------
@@ -359,7 +341,6 @@ async function boot() {
       const head = document.createElement('header');
       head.className = 'bank-head';
       head.innerHTML =
-        '<span class="bank-chip" aria-hidden="true"></span>' +
         '<div class="bank-text"><h3 class="bank-name"></h3><p class="bank-meta"></p></div>' +
         '<span class="bank-count"></span>';
       head.querySelector('.bank-name').textContent = `${bank.district} District`;
@@ -385,7 +366,6 @@ async function boot() {
           .join(' ')
           .toLowerCase();
         button.innerHTML =
-          '<span class="entry-swatch" aria-hidden="true"></span>' +
           '<span class="entry-main"><span class="entry-line"><span class="entry-name"></span>' +
           '<span class="entry-leader" aria-hidden="true"></span><span class="entry-ref"></span></span>' +
           '<span class="entry-hq"></span></span>';
@@ -406,14 +386,6 @@ async function boot() {
 
       section.append(list);
       root.append(section);
-    }
-    document.getElementById('region-count').textContent = String(associations.length);
-  }
-
-  function refreshSwatches() {
-    for (const el of document.querySelectorAll('.entry')) {
-      const i = Number(el.dataset.index);
-      el.querySelector('.entry-swatch').style.background = map.colorOf(i, mode);
     }
   }
 
@@ -448,10 +420,11 @@ async function boot() {
 
   // --- Go ------------------------------------------------------------------------
   buildGazetteer();
-  setMode(mode);
+  renderLegend();
+  signpost.showDefault(glance);
   updateHud();
 
-  new ResizeObserver(layout).observe(atlas);
+  new ResizeObserver(layout).observe(mapCol);
   window.addEventListener('resize', layout);
   layout();
 
@@ -466,7 +439,7 @@ async function boot() {
     if (i !== undefined && anchors.has(i) && i !== selected) setSelected(i, { announceIt: false });
   }
 
-  // Rulers, legend and swatches need the grid and palette; they are ready now.
+  // Rulers need the grid geometry; it's ready now.
   function buildRulers() {
     const top = document.getElementById('ruler-top');
     const left = document.getElementById('ruler-left');
@@ -489,17 +462,6 @@ async function boot() {
 }
 
 // --- Helpers ---------------------------------------------------------------------
-
-function fillStats(stats, associations, banks) {
-  const set = (id, n) => {
-    const el = document.getElementById(id);
-    if (el && Number.isFinite(n)) el.textContent = n.toLocaleString('en-US');
-  };
-  set('stat-associations', stats.associations ?? associations.length);
-  set('stat-banks', stats.banks ?? banks.length);
-  set('stat-counties', stats.counties);
-  set('stat-states', stats.states);
-}
 
 /**
  * Mark the matching gazetteer entry, without scrolling to it. Selecting a

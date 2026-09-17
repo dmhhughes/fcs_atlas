@@ -24,7 +24,6 @@ npm run serve     # http://localhost:8080
 |---|---|
 | Hover / click | Highlight a territory / open its signpost |
 | Arrow keys (or WASD) | Travel to the neighbouring territory in that direction |
-| `1` `2` | Colour the map by association or by district bank |
 | `Esc` | Clear the selection |
 | Find box | Filter the gazetteer; `Enter` opens the first match |
 

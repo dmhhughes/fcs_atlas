@@ -34,17 +34,6 @@ export const DISTRICT_COLORS = {
 };
 export const DISTRICT_FALLBACK = '#9c8760';
 
-/**
- * Deterministic colour per association, spaced around the wheel by the golden
- * angle so neighbours stay distinguishable. Held to an earth/vegetation hue
- * arc and low saturation so 55 tints read as hypsometric shading rather than
- * confetti; blue is left to the sea and red to the selection accent.
- */
-export function regionColor(index) {
-  const hue = 25 + ((index * 137.508) % 125);
-  return `hsl(${hue.toFixed(1)} 38% 54%)`;
-}
-
 /** Stable per-tile pseudo-random value in [0,1). */
 export function tileNoise(x, y) {
   let h = (x * 374761393 + y * 668265263) | 0;

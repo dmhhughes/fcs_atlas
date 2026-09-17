@@ -245,7 +245,7 @@ async function shot(name, state) {
   ctx.fillRect(0, 0, CANVAS_W / scale, CANVAS_H / scale);
   ctx.save();
   ctx.translate(originX / scale, originY / scale);
-  renderFrame(ctx, map, { unit, mode: 'territory', ...state });
+  renderFrame(ctx, map, { unit, ...state });
   ctx.restore();
 
   let magenta = 0;
@@ -260,8 +260,7 @@ async function shot(name, state) {
 
 const find = (needle) => associations.findIndex((a) => a.name.toLowerCase().includes(needle));
 
-await shot('territory', {});
-await shot('district', { mode: 'district' });
+await shot('map', {});
 await shot('selected', { selected: find('agtrust'), hovered: find('capital farm credit') });
 await shot('ping', { selected: find('fresno-madera'), ping: { index: find('fresno-madera'), t: 0.35 } });
 
