@@ -180,6 +180,12 @@ main {
   align-items: stretch;
 }
 
+/* Grid tracks default to a content-based automatic minimum size, which a
+   fixed-size child (the canvas placeholder below) can inflate past this
+   column's own width - a "grid blowout" that ignores .plate's max-width and,
+   on first mobile load, feeds main.js's layout() a too-wide measurement. */
+.map-col { min-width: 0; }
+
 /* --- The plate: map on a parchment mat, with atlas rulers ------------------ */
 .plate {
   --ruler-w: 28px;
@@ -238,16 +244,22 @@ main {
 
 .stage-wrap {
   grid-area: 2 / 2;
+  min-width: 0;
   position: relative;
   background: #4a616b;
   box-shadow: 0 0 0 4px var(--ink);
 }
 
 canvas#stage {
-  /* Placeholder size until main.js sizes the canvas to the quantised map. */
+  /* Placeholder until main.js sizes the canvas to the quantised map. A
+     percentage width has no intrinsic size to contribute to the grid's
+     automatic minimum, unlike a fixed px size - so it can't blow out
+     .plate's "auto" column past the viewport before JS takes over. The
+     ratio matches the 3200x2000 world (see scripts/lib/config.mjs). */
   display: block;
-  width: 800px;
-  height: 500px;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1.6;
   max-width: none;
   outline: none;
   touch-action: manipulation;
